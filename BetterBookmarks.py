@@ -4,6 +4,29 @@ global settings
 settings = sublime.load_settings("BetterBookmarks.sublime-settings")
 
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
+	def run(self, edit, **args):
+		if args.get('bookmark_line'):
+			self.bookmark_line(self.view, self.view.line(self.view.sel()[0]))
+
+	@staticmethod
+	def bookmark_line(view, line):
+		oldMarks = view.get_regions("bookmarks")
+
+		newMarks = []
+		bookmarkFound = False
+
+		for bookmark in oldMarks:
+			if line.contains(bookmark):
+				bookmarkFound = True
+			else:
+				newMarks.append(bookmark)
+
+		if  not bookmarkFound:
+			newMarks.append(line)
+
+		view.add_regions("bookmarks", newMarks, "bookmarks", 
+			"bookmark", sublime.HIDDEN | sublime.PERSISTENT)
+
 	@staticmethod
 	def should_bookmark(view, region):
 		bookmarks = view.get_regions("bookmarks")
@@ -15,22 +38,9 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		return True
 
-	def run(self, edit):
-		caretLine = self.view.line(self.view.sel()[0])
-     	oldBookmarks = self.view.get_regions("bookmarks")
+class BetterBookmarksEventListener(sublime_plugin.EventListener):
+	def on_load(view):
+		print("Implement")
 
-		newBookmarks = []
-		bookmarkFoundOnCaretLine = False
-
-		for thisbookmark in oldBookmarks:
-			if caretLine.contains(thisbookmark):
-		 		bookmarkFoundOnCaretLine = True
-			else:
-				newBookmarks.append(thisbookmark)
-
-		if not bookmarkFoundOnCaretLine:
-			newBookmarks.append(self.view.sel()[0])
-
-		sublime.active_window().active_view().add_regions(
-			"bookmarks", newBookmarks, "bookmarks", "bookmark", 
-			sublime.HIDDEN | sublime.PERSISTENT)
+	def on_pre_save_async(view):
+		print("Implement")
