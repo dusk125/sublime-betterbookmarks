@@ -1,3 +1,6 @@
 [
-    { "keys": ["f11"], "command": "bookmark_line" }
+    {
+		"keys": ["f11"], "command": "better_bookmarks",
+		"args": {"bookmark_line": true}
+	},
 ]
