@@ -8,26 +8,40 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		sublime_plugin.TextCommand.__init__(self, edit)
 		self.bookmarks = []
 		self.refresh_bookmarks(self.view)
+		self.layer = "function"
 
 	def run(self, edit, **args):
 		if args.get('bookmark_line'):
-			self.bookmark_line(self.view, self.view.line(self.view.sel()[0]))
+			self.bookmark_line(self.view, self.layer, self.view.line(self.view.sel()[0]))
+		elif args.get('bb_prev_group'):
+			print("Implement - Prev Group")
+		elif args.get('bb_next_group'):
+			print("Implement - Next Group")
 
 	def refresh_bookmarks(self, view):
 		self.bookmarks = view.get_regions("bookmarks")
 
-	def bookmark_line(self, view, line):
+	def bookmark_line(self, view, layer, line):
+		bookmarks = self.bookmarks
 		newMarks = []
-		
-		if not self.bookmarks:
-			newMarks.append(line)
+		bookmarkFound = False
 
-		for bookmark in self.bookmarks:
-			if not line.contains(bookmark):
+		if not layer == self.layer:
+			print("Cache current layer and load layer from file")
+
+		for bookmark in bookmarks:
+			if line.contains(bookmark):
+				bookmarkFound = True
+			else:
 				newMarks.append(bookmark)
 
-		view.add_regions("bookmarks", newMarks, "bookmarks", 
-			"bookmark", sublime.HIDDEN | sublime.PERSISTENT)
+		if not bookmarkFound:
+			newMarks.append(line)
+
+		icon = settings.get("layer_icons")[self.layer]["icon"]
+		scope = settings.get("layer_icons")[self.layer]["scope"]
+
+		view.add_regions("bookmarks", newMarks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
 		self.refresh_bookmarks(view)
 
@@ -43,7 +57,9 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def on_load(self, view):
-		print("Implement")
+		if settings.get("load_marks_on_load"):
+			print("Implement - On load")
 
 	def on_post_save(self, view):
-		print("Implement")
+		if settings.get("save_marks_on_save"):
+			print("Implement - On save")

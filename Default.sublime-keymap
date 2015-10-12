@@ -3,4 +3,12 @@
 		"keys": ["f11"], "command": "better_bookmarks",
 		"args": {"bookmark_line": true}
 	},
+	{
+		"keys": ["f7"], "command": "better_bookmarks",
+		"args": {"bb_prev_layer": true}
+	},
+	{
+		"keys": ["f8"], "command": "better_bookmarks",
+		"args": {"bb_next_layer": true}
+	},
 ]
