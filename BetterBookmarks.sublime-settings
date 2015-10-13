@@ -3,7 +3,8 @@
 	"save_marks_on_save": false,
 	"load_marks_on_load": false,
 	"layer_icons": {
-		"bookmark": {"icon": "bookmark", "scope": "string"},
-		"function": {"icon": "dot", "scope": "comment"},
-	}
+		"bookmarks": {"icon": "bookmark", "scope": "string"},
+		"functions": {"icon": "dot", "scope": "comment"},
+	},
+	"default_layer": "bookmarks",
 }

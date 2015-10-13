@@ -1,4 +1,5 @@
 import sublime, sublime_plugin
+import collections
 
 global settings
 settings = sublime.load_settings("BetterBookmarks.sublime-settings")
@@ -6,20 +7,22 @@ settings = sublime.load_settings("BetterBookmarks.sublime-settings")
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
 		sublime_plugin.TextCommand.__init__(self, edit)
+
 		self.bookmarks = []
-		self.refresh_bookmarks(self.view)
-		self.layer = "function"
+		self.layers = collections.deque(settings.get("layer_icons"))
+		self.layer = settings.get("default_layer")
+		self.refresh_bookmarks()
 
-	def run(self, edit, **args):
-		if args.get('bookmark_line'):
-			self.bookmark_line(self.view, self.layer, self.view.line(self.view.sel()[0]))
-		elif args.get('bb_prev_group'):
-			print("Implement - Prev Group")
-		elif args.get('bb_next_group'):
-			print("Implement - Next Group")
+	def add_marks(self, list):
+		icon = settings.get("layer_icons")[self.layer]["icon"]
+		scope = settings.get("layer_icons")[self.layer]["scope"]
 
-	def refresh_bookmarks(self, view):
-		self.bookmarks = view.get_regions("bookmarks")
+		self.view.add_regions(self.layer, list, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
+
+		self.refresh_bookmarks()
+
+	def refresh_bookmarks(self):
+		self.bookmarks = self.view.get_regions(self.layer)
 
 	def bookmark_line(self, view, layer, line):
 		bookmarks = self.bookmarks
@@ -38,12 +41,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		if not bookmarkFound:
 			newMarks.append(line)
 
-		icon = settings.get("layer_icons")[self.layer]["icon"]
-		scope = settings.get("layer_icons")[self.layer]["scope"]
-
-		view.add_regions("bookmarks", newMarks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
-
-		self.refresh_bookmarks(view)
+		self.add_marks(newMarks)
 
 	def should_bookmark(self, view, region):
 		bookmarks = view.get_regions("bookmarks")
@@ -54,6 +52,22 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 				return False
 
 		return True
+
+	def run(self, edit, **args):
+		if args.get('bookmark_line'):
+			self.bookmark_line(self.view, self.layer, self.view.line(self.view.sel()[0]))
+		if args.get('swap_layers'):
+			direction = args.get('direction')
+
+			if direction == "prev":
+				self.layers.rotate(-1)
+			elif direction == "next":
+				self.layers.rotate(1)
+
+			self.layer = self.layers[0]
+			self.refresh_bookmarks()
+		if args.get('clear_marks'):
+			self.add_marks([])
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def on_load(self, view):
