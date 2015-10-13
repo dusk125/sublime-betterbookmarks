@@ -7,6 +7,8 @@
 		"keys": ["f8"], "command": "better_bookmarks",
 		"args": {"swap_layers": true, "direction": "next"}
 	},
+	{ "keys": ["f9"], "command": "prev_bookmark" },
+  	{ "keys": ["f10"], "command": "next_bookmark" },
     {
 		"keys": ["f11"], "command": "better_bookmarks",
 		"args": {"bookmark_line": true}

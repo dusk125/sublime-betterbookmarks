@@ -1,6 +1,6 @@
 {
 	"automark_functions": false,
-	"save_marks_on_save": false,
+	"auto_save_marks": true,
 	"load_marks_on_load": false,
 	"layer_icons": {
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
