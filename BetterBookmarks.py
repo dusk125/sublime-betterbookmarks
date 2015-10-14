@@ -15,6 +15,22 @@ def should_bookmark(view, region):
 
 	return True
 
+# class BBRegion():
+# 	def __init__(self, a, b):
+# 		self.a = a
+# 		self.b = b
+
+# 	def __hash__(self):
+# 		print("hello")
+# 		return hash((self.a, self.b))
+
+# 	def __eq__(self, other):
+# 		return isinstance(other, BBRegion) and self.a == other.a and self.b == other.b
+
+# 	@staticmethod
+# 	def cast_to_this(region):
+# 		return BBRegion(region.a, region.b)
+
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
 		sublime_plugin.TextCommand.__init__(self, edit)
@@ -25,14 +41,6 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		
 		bookmark_cache_name = sublime.expand_variables("${file_base_name}.sublime-settings", sublime.active_window().extract_variables())
 		self.bookmark_cache = "BetterBookmarks/{:s}".format(bookmark_cache_name)
-		self.cache = sublime.load_settings(self.bookmark_cache)
-
-		self.layers = collections.deque(settings.get("layer_icons"))
-		self.layer = settings.get("default_layer")
-		self.bookmarks = self.cache.get("Bookmarks")
-		if not self.bookmarks:
-			self.bookmarks = dict([])
-		self.refresh_bookmarks()
 
 	def add_marks(self, list):
 		icon = settings.get("layer_icons")[self.layer]["icon"]
@@ -43,25 +51,26 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		self.refresh_bookmarks()
 
 	def refresh_bookmarks(self):
-		print(self.bookmarks)
 		self.bookmarks[self.layer] = self.view.get_regions("bookmarks")
-		print(self.bookmarks)
 
 	def bookmark_line(self, layer, line):
-		bookmarks = self.bookmarks
 		newMarks = []
 		bookmarkFound = False
 
 		if not layer == self.layer:
 			print("Cache current layer and load layer from file")
 
+		bookmarks = self.bookmarks[layer]
+
 		for bookmark in bookmarks:
 			if line.contains(bookmark):
 				bookmarkFound = True
 			else:
+				# bm = BBRegion.cast_to_this(bookmark)
 				newMarks.append(bookmark)
 
 		if not bookmarkFound:
+			# ln = BBRegion.cast_to_this(line)
 			newMarks.append(line)
 
 		self.add_marks(newMarks)
@@ -73,11 +82,15 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			self.layers.rotate(1)
 
 		if settings.get("auto_save_marks"):
-#			layer_dict = dict([])
-#			for layer in self.layers:
-#				layer_dict[layer] = self.bookmarks
-			print(self.bookmarks)
-			self.cache.set("Bookmarks", {self.bookmarks})
+			# print(self.bookmarks)
+			def freeze(d):
+			    if isinstance(d, dict):
+			        return frozenset((key, freeze(value)) for key, value in d.items())
+			    elif isinstance(d, list):
+			        return tuple(freeze(value) for value in d)
+			    return d
+			# self.cache.set(key="Marks", value=freeze(self.bookmarks))
+			self.cache.set("Marks", self.bookmarks[self.layer])
 			sublime.save_settings(self.bookmark_cache)
 
 		self.layer = self.layers[0]
@@ -92,21 +105,86 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		elif args.get('clear_marks'):
 			self.add_marks([])
 
+global bbFiles
+bbFiles = dict([])
+
+def get_current_file_name():
+	return sublime.expand_variables("${file}", sublime.active_window().extract_variables())
+
+class BBFile():
+	def __init__(self, view):
+		self.view = view
+		self.filename = get_current_file_name()
+		self.layer = settings.get("default_layer")
+		self.marks = dict([])
+
+	def refresh_bookmarks(self):
+		self.marks[self.layer] = self.view.get_regions("bookmarks")
+
+	def add_marks(self, list):
+		icon = settings.get("layer_icons")[self.layer]["icon"]
+		scope = settings.get("layer_icons")[self.layer]["scope"]
+
+		self.view.add_regions("bookmarks", list, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
+
+		self.refresh_bookmarks()
+
+	def add_mark(self, line, layer=None):
+		newMarks = []
+		markFound = False
+
+		if not layer:
+			layer = self.layer
+		elif not layer == self.layer:
+			print("Cache current layer and load layer from file")
+
+		if not layer in self.marks:
+			self.marks[layer] = []
+
+		marks = self.marks[layer]
+
+		for mark in marks:
+			if line.contains(mark):
+				markFound = True
+			else:
+				newMarks.append(mark)
+
+		if not markFound:
+			newMarks.append(line)
+
+		self.add_marks(newMarks)
+
+class BetterBookmarksMarkLineCommand(sublime_plugin.TextCommand):
+	def run(self, edit):
+		bb = bbFiles[get_current_file_name()]
+		bb.add_mark(self.view.line(self.view.sel()[0]))
+
+class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
+	def run(self, edit):
+		bb = bbFiles[get_current_file_name()]
+		bb.add_marks([])
+
+class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
+	def run(self, edit, **args):
+		print("Implement")
+
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def __init__(self):
 		sublime_plugin.EventListener.__init__(self)
 
 	def on_load(self, view):
 		if settings.get("load_marks_on_load"):
-			print("Implement - On load")
+			filename = get_current_file_name()
+			if filename in bbFiles:
+				print("")
+			else:
+				print("[BetterBookmarksEventListener] Creating BBFile for " + filename)
+				bbFiles[filename] = BBFile(view)
+			# self.cache = sublime.load_settings(self.bookmark_cache)
 
-	# def on_post_save(self, view):
-	# 	if settings.get("save_marks_on_save"):
-	# 		bookmarks = view.get_regions("bookmarks")
-			# if not len(bookmarks):
-			# 	filename = "BetterBookmarks/{:s}.sublime-settings".format(self.bookmark_cache)
-			# 	marks = sublime.load_settings(filename)
-			# 	print(self.bb.layers)
-				# for layer in self.bb.layers:
-				# 	print(layer)
-				# marks.set()
+			# self.layers = collections.deque(settings.get("layer_icons"))
+			# self.layer = settings.get("default_layer")
+			# self.bookmarks = self.cache.get("Bookmarks")
+			# if self.bookmarks == None:
+			# 	self.bookmarks = dict([])
+			# self.refresh_bookmarks()

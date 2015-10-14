@@ -1,7 +1,7 @@
 {
 	"automark_functions": false,
 	"auto_save_marks": true,
-	"load_marks_on_load": false,
+	"load_marks_on_load": true,
 	"layer_icons": {
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
 		"functions": {"icon": "dot", "scope": "comment"},

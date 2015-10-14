@@ -1,20 +1,20 @@
 [
 	{
-		"keys": ["f7"], "command": "better_bookmarks",
+		"keys": ["f7"], "command": "better_bookmarks_swap_layer",
 		"args": {"swap_layer": true, "direction": "prev"}
 	},
 	{
-		"keys": ["f8"], "command": "better_bookmarks",
+		"keys": ["f8"], "command": "better_bookmarks_swap_layer",
 		"args": {"swap_layers": true, "direction": "next"}
 	},
 	{ "keys": ["f9"], "command": "prev_bookmark" },
   	{ "keys": ["f10"], "command": "next_bookmark" },
     {
-		"keys": ["f11"], "command": "better_bookmarks",
-		"args": {"bookmark_line": true}
+		"keys": ["f11"], "command": "better_bookmarks_mark_line",
+		// "args": {"bookmark_line": true}
 	},
 	{
-		"keys": ["f12"], "command": "better_bookmarks",
-		"args": {"clear_marks": true}
+		"keys": ["f12"], "command": "better_bookmarks_clear_marks",
+		// "args": {"clear_marks": true}
 	}
 ]
