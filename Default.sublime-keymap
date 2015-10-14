@@ -11,10 +11,8 @@
   	{ "keys": ["f10"], "command": "next_bookmark" },
     {
 		"keys": ["f11"], "command": "better_bookmarks_mark_line",
-		// "args": {"bookmark_line": true}
 	},
 	{
 		"keys": ["f12"], "command": "better_bookmarks_clear_marks",
-		// "args": {"clear_marks": true}
 	}
 ]
