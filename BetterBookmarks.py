@@ -132,8 +132,23 @@ def get_marks_filename():
 class RegionEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, sublime.Region):
-			return [obj.a, obj.b]
+			return {
+				'__type__': "sublime.Region",
+				'a': obj.a,
+				'b': obj.b,
+			}
 		return json.JSONEncoder.default(self, obj)
+
+def dict_to_object(self, d):
+	if '__type__' not in d:
+		return d
+
+	type = d.pop('__type__')
+	if type == 'sublime.Region':
+		return sublime.Region(**d)
+	else:
+		d['__type__'] = type
+		return d
 
 class BBFile():
 	def __init__(self, view):
@@ -158,8 +173,11 @@ class BBFile():
 	def load_marks(self):
 		try:
 			with open(get_marks_filename(), 'r') as fp:
-				self.marks = json.load(fp)
+				self.marks = json.load(fp, object_hook=dict_to_object)
+				print(self.marks)
+				self.refresh_bookmarks()
 		except Exception as e:
+			print("Couldn't read file")
 			pass
 
 	def save_marks(self):
@@ -208,7 +226,9 @@ class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
 
 class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 	def run(self, edit, **args):
-		print("Implement")
+		bb = bbFiles[get_current_file_name()]
+		bb.load_marks()
+		# print("Implement")
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def __init__(self):
