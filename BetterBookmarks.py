@@ -57,9 +57,13 @@ class BBFile():
 	def __init__(self, view):
 		self.view = view
 		self.filename = get_current_file_name()
-		self.layers = settings.get("layer_icons")
+		self.layers = collections.deque(settings.get("layer_icons"))
 		self.layer = settings.get("default_layer")
+		while not self.layers[0] == self.layer:
+			self.layers.rotate(1)
 		self.marks = dict([])
+		for layer in settings.get("layer_icons"):
+			self.marks[layer] = []
 
 	def refresh_bookmarks(self):
 		self.marks[self.layer] = self.view.get_regions("bookmarks")
@@ -112,7 +116,24 @@ class BBFile():
 
 		self.add_marks(newMarks)
 
-	# def swap_layer(self)
+	def change_to_layer(self, layer):
+		self.layer = layer
+		sublime.status_message(self.layer)
+
+		if self.layer in self.marks:
+			self.add_marks(self.marks[self.layer])
+		else:
+			self.marks[self.layer] = []
+
+	def swap_layer(self, direction):
+		if direction == "prev":
+			self.layers.rotate(-1)
+		elif direction == "next":
+			self.layers.rotate(1)
+		else:
+			sublime.error_message("Invalid layer swap direction.")
+
+		self.change_to_layer(self.layers[0])
 
 def get_bb_file():
 	bb = None
@@ -121,7 +142,6 @@ def get_bb_file():
 	if filename in bbFiles:
 		bb = bbFiles[get_current_file_name()]
 	else:
-		print("Couldn't find file: {:s}, creating new one".format(get_current_file_name()))
 		bb = BBFile(sublime.active_window().active_view())
 		bbFiles[filename] = bb
 
@@ -137,10 +157,20 @@ class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
 		bb = get_bb_file()
 		bb.add_marks([])
 
+class BetterBookmarksClearAllMarksCommand(sublime_plugin.TextCommand):
+	def run(self, edit):
+		bb = get_bb_file()
+		blayer = bb.layer
+		for layer in bb.layers:
+			bb.layer = layer
+			bb.add_marks([])
+
+		bb.layer = blayer
+
 class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 	def run(self, edit, **args):
 		bb = get_bb_file()
-		print("Implement")
+		bb.swap_layer(args.get("direction"))
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def __init__(self):
