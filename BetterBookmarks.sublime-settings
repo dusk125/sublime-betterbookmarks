@@ -2,9 +2,10 @@
 	"automark_functions": false,
 	"auto_save_marks": true,
 	"load_marks_on_load": true,
+	"cleanup_empty_cache_on_close": true,
 	"layer_icons": {
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
-		"functions": {"icon": "dot", "scope": "comment"},
+		"functions": {"icon": "Packages/BetterBookmarks/function.png", "scope": "comment"},
 	},
 	"default_layer": "bookmarks",
 }
