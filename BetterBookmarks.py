@@ -8,28 +8,35 @@ settings = sublime.load_settings("BetterBookmarks.sublime-settings")
 global bbFiles
 bbFiles = dict([])
 
-def should_bookmark(view, region):
-	bookmarks = view.get_regions("bookmarks")
-	line = view.line(region)
+class BBFunctions():
+	@staticmethod
+	def get_variable(var_string):
+		return sublime.expand_variables("{:s}".format(var_string), sublime.active_window().extract_variables())
 
-	for bookmark in bookmarks:
-		if line.contains(bookmark):
-			return False
+	@staticmethod
+	def get_current_file_name():
+		return get_variable("${file}")
 
-	return True
+	@staticmethod
+	def get_marks_filename():
+		directory = "{:s}\\User\\BetterBookmarks".format(sublime.packages_path())
+		if not os.path.exists(directory):
+			os.makedirs(directory)
 
-def get_variable(var_string):
-	return sublime.expand_variables("{:s}".format(var_string), sublime.active_window().extract_variables())
+		return "{:s}\\{:s}-{:s}.bb_cache".format(directory, get_variable("${file_base_name}"), get_variable("${file_extension}"))
 
-def get_current_file_name():
-	return get_variable("${file}")
+	@staticmethod
+	def get_bb_file():
+		bb = None
+		filename = get_current_file_name()
 
-def get_marks_filename():
-	directory = "{:s}\\User\\BetterBookmarks".format(sublime.packages_path())
-	if not os.path.exists(directory):
-		os.makedirs(directory)
+		if filename in bbFiles:
+			bb = bbFiles[get_current_file_name()]
+		else:
+			bb = BBFile(sublime.active_window().active_view())
+			bbFiles[filename] = bb
 
-	return "{:s}\\{:s}-{:s}.bb_cache".format(directory, get_variable("${file_base_name}"), get_variable("${file_extension}"))
+		return bb
 
 class RegionJSONCoder(json.JSONEncoder):
 	def default(self, obj):
@@ -64,6 +71,16 @@ class BBFile():
 		self.marks = dict([])
 		for layer in settings.get("layer_icons"):
 			self.marks[layer] = []
+
+	def should_bookmark(self, region):
+		bookmarks = self.view.get_regions("bookmarks")
+		line = self.view.line(region)
+
+		for bookmark in bookmarks:
+			if line.contains(bookmark):
+				return False
+
+		return True
 
 	def refresh_bookmarks(self):
 		self.marks[self.layer] = self.view.get_regions("bookmarks")
@@ -134,18 +151,6 @@ class BBFile():
 			sublime.error_message("Invalid layer swap direction.")
 
 		self.change_to_layer(self.layers[0])
-
-def get_bb_file():
-	bb = None
-	filename = get_current_file_name()
-
-	if filename in bbFiles:
-		bb = bbFiles[get_current_file_name()]
-	else:
-		bb = BBFile(sublime.active_window().active_view())
-		bbFiles[filename] = bb
-
-	return bb
 
 class BetterBookmarksMarkLineCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
