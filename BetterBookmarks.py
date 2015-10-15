@@ -15,7 +15,7 @@ class BBFunctions():
 
 	@staticmethod
 	def get_current_file_name():
-		return get_variable("${file}")
+		return BBFunctions.get_variable("${file}")
 
 	@staticmethod
 	def get_marks_filename():
@@ -23,15 +23,15 @@ class BBFunctions():
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
-		return "{:s}\\{:s}-{:s}.bb_cache".format(directory, get_variable("${file_base_name}"), get_variable("${file_extension}"))
+		return "{:s}\\{:s}-{:s}.bb_cache".format(directory, BBFunctions.get_variable("${file_base_name}"), BBFunctions.get_variable("${file_extension}"))
 
 	@staticmethod
 	def get_bb_file():
 		bb = None
-		filename = get_current_file_name()
+		filename = BBFunctions.get_current_file_name()
 
 		if filename in bbFiles:
-			bb = bbFiles[get_current_file_name()]
+			bb = bbFiles[filename]
 		else:
 			bb = BBFile(sublime.active_window().active_view())
 			bbFiles[filename] = bb
@@ -63,7 +63,7 @@ class RegionJSONCoder(json.JSONEncoder):
 class BBFile():
 	def __init__(self, view):
 		self.view = view
-		self.filename = get_current_file_name()
+		self.filename = BBFunctions.get_current_file_name()
 		self.layers = collections.deque(settings.get("layer_icons"))
 		self.layer = settings.get("default_layer")
 		while not self.layers[0] == self.layer:
@@ -95,7 +95,7 @@ class BBFile():
 
 	def load_marks(self):
 		try:
-			with open(get_marks_filename(), 'r') as fp:
+			with open(BBFunctions.get_marks_filename(), 'r') as fp:
 				self.marks = json.load(fp, object_hook=RegionJSONCoder.dict_to_object)
 				for tup in self.marks.items():
 					self.layer = tup[0]
@@ -105,7 +105,7 @@ class BBFile():
 			pass
 
 	def save_marks(self):
-		with open(get_marks_filename(), 'w') as fp:
+		with open(BBFunctions.get_marks_filename(), 'w') as fp:
 			json.dump(self.marks, fp, cls=RegionJSONCoder)
 
 	def add_mark(self, line, layer=None):
@@ -154,17 +154,17 @@ class BBFile():
 
 class BetterBookmarksMarkLineCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = get_bb_file()
+		bb = BBFunctions.get_bb_file()
 		bb.add_mark(self.view.line(self.view.sel()[0]))
 
 class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = get_bb_file()
+		bb = BBFunctions.get_bb_file()
 		bb.add_marks([])
 
 class BetterBookmarksClearAllMarksCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = get_bb_file()
+		bb = BBFunctions.get_bb_file()
 		blayer = bb.layer
 		for layer in bb.layers:
 			bb.layer = layer
@@ -174,7 +174,7 @@ class BetterBookmarksClearAllMarksCommand(sublime_plugin.TextCommand):
 
 class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 	def run(self, edit, **args):
-		bb = get_bb_file()
+		bb = BBFunctions.get_bb_file()
 		bb.swap_layer(args.get("direction"))
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
@@ -183,7 +183,7 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 
 	def on_load(self, view):
 		if settings.get("load_marks_on_load"):
-			filename = get_current_file_name()
+			filename = BBFunctions.get_current_file_name()
 			if not filename in bbFiles:
 				print("[BetterBookmarksEventListener] Creating BBFile for " + filename)
 				bb = BBFile(view)
@@ -192,23 +192,23 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 
 	def on_pre_save(self, view):
 		if settings.get("auto_save_marks"):
-			filename = get_current_file_name()
+			filename = BBFunctions.get_current_file_name()
 
-			bb = get_bb_file()
+			bb = BBFunctions.get_bb_file()
 
 			if bb.marks.keys():
 				bb.save_marks()
 
 	def on_pre_close(self, view):
 		if settings.get("cleanup_empty_cache_on_close"):
-			filename = get_current_file_name()
-			bb = get_bb_file()
+			filename = BBFunctions.get_current_file_name()
+			bb = BBFunctions.get_bb_file()
 			empty = True
 			for item in bb.marks.items():
 				empty = empty and not item[1]
 			if bb.marks.items() and empty:
 				try:
-					os.remove(get_marks_filename())
+					os.remove(BBFunctions.get_marks_filename())
 				except FileNotFoundError as e:
 					pass
 			if filename in bbFiles:
