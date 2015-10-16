@@ -35,6 +35,7 @@ class BBFunctions():
 		else:
 			bb = BBFile(sublime.active_window().active_view())
 			bbFiles[filename] = bb
+			bb.refresh_bookmarks()
 
 		return bb
 
