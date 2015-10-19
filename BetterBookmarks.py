@@ -2,11 +2,11 @@ import sublime, sublime_plugin, os
 import collections
 import json
 
-global settings
-settings = sublime.load_settings("BetterBookmarks.sublime-settings")
-
 global bbFiles
 bbFiles = dict([])
+
+def Settings():
+    return sublime.load_settings('BetterBookmarks.sublime-settings')
 
 class BBFunctions():
 	@staticmethod
@@ -65,12 +65,12 @@ class BBFile():
 	def __init__(self, view):
 		self.view = view
 		self.filename = BBFunctions.get_current_file_name()
-		self.layers = collections.deque(settings.get("layer_icons"))
-		self.layer = settings.get("default_layer")
+		self.layers = collections.deque(Settings().get("layer_icons"))
+		self.layer = Settings().get("default_layer")
 		while not self.layers[0] == self.layer:
 			self.layers.rotate(1)
 		self.marks = dict([])
-		for layer in settings.get("layer_icons"):
+		for layer in Settings().get("layer_icons"):
 			self.marks[layer] = []
 
 	def should_bookmark(self, region):
@@ -87,8 +87,8 @@ class BBFile():
 		self.marks[self.layer] = self.view.get_regions("bookmarks")
 
 	def add_marks(self, list):
-		icon = settings.get("layer_icons")[self.layer]["icon"]
-		scope = settings.get("layer_icons")[self.layer]["scope"]
+		icon = Settings().get("layer_icons")[self.layer]["icon"]
+		scope = Settings().get("layer_icons")[self.layer]["scope"]
 
 		self.view.add_regions("bookmarks", list, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
@@ -101,7 +101,7 @@ class BBFile():
 				for tup in self.marks.items():
 					self.layer = tup[0]
 					self.add_marks(tup[1])
-				self.layer = settings.get("default_layer")
+				self.layer = Settings().get("default_layer")
 		except Exception as e:
 			pass
 
@@ -179,11 +179,8 @@ class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 		bb.swap_layer(args.get("direction"))
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
-	def __init__(self):
-		sublime_plugin.EventListener.__init__(self)
-
 	def on_load(self, view):
-		if settings.get("load_marks_on_load"):
+		if Settings().get("load_marks_on_load"):
 			filename = BBFunctions.get_current_file_name()
 			if not filename in bbFiles:
 				print("[BetterBookmarksEventListener] Creating BBFile for " + filename)
@@ -192,7 +189,7 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 				bbFiles[filename] = bb
 
 	def on_pre_save(self, view):
-		if settings.get("auto_save_marks"):
+		if Settings().get("auto_save_marks"):
 			filename = BBFunctions.get_current_file_name()
 
 			bb = BBFunctions.get_bb_file()
@@ -201,7 +198,7 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 				bb.save_marks()
 
 	def on_pre_close(self, view):
-		if settings.get("cleanup_empty_cache_on_close"):
+		if Settings().get("cleanup_empty_cache_on_close"):
 			filename = BBFunctions.get_current_file_name()
 			bb = BBFunctions.get_bb_file()
 			empty = True
