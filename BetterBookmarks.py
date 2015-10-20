@@ -197,6 +197,12 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 			if bb.marks.keys():
 				bb.save_marks()
 
+	def on_post_save(self, view):
+		if BBFunctions.get_variable("${file_name}") == "BetterBookmarks.sublime-settings":
+			for bb in bbFiles.items():
+				bb[1].layers.clear()
+				bb[1].layers.extend(Settings().get("layer_icons"))
+
 	def on_pre_close(self, view):
 		if Settings().get("cleanup_empty_cache_on_close"):
 			filename = BBFunctions.get_current_file_name()

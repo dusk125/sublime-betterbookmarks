@@ -6,6 +6,7 @@
 	"layer_icons": {
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
 		"functions": {"icon": "Packages/BetterBookmarks/function.png", "scope": "comment"},
+		"todos": {"icon": "Packages/BetterBookmarks/todo.png", "scope": "comment"},
 	},
 	"default_layer": "bookmarks",
 }
