@@ -19,11 +19,11 @@ class BBFunctions():
 
 	@staticmethod
 	def get_marks_filename():
-		directory = "{:s}\\User\\BetterBookmarks".format(sublime.packages_path())
+		directory = "{:s}/User/BetterBookmarks".format(sublime.packages_path())
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 
-		return "{:s}\\{:s}-{:s}.bb_cache".format(directory, BBFunctions.get_variable("${file_base_name}"), BBFunctions.get_variable("${file_extension}"))
+		return "{:s}/{:s}-{:s}.bb_cache".format(directory, BBFunctions.get_variable("${file_base_name}"), BBFunctions.get_variable("${file_extension}"))
 
 	@staticmethod
 	def get_bb_file():
