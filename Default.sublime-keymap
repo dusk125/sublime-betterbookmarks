@@ -8,8 +8,8 @@
 		"args": {"direction": "next"}
 	},
 	{ "keys": ["f9"], "command": "prev_bookmark" },
-  	{ "keys": ["f10"], "command": "next_bookmark" },
-    {
+	{ "keys": ["f10"], "command": "next_bookmark" },
+	{
 		"keys": ["f11"], "command": "better_bookmarks_mark_line",
 	},
 	{
