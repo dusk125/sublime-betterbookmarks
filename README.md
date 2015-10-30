@@ -63,6 +63,8 @@ default_layer (string): What layer should be selected on start.
 	"default_layer": "bookmarks",
 }
 ```
+## OS Support
+Currently, this plugin has been written and tested only on Windows. I'm planning on adding support for both Linux and Mac.
 ## License
 Copyright (c) 2015 Allen Ray
 
