@@ -1,7 +1,5 @@
 # BetterBookmarks
 BetterBookmarks changes the way the native bookmarks in Sublime Text 3 work. In addition to only allowing one bookmark per line, you can customize different layers for your bookmarks.
-
-Note: This plugin is only supported on Windows at the moment. I will be adding support for Linux and Mac.
 ## Installation
 #### Git Clone
 First, find out where the packages directory is by going to (Preferences->Browse Packages), use that location in the git clone command.
@@ -65,8 +63,6 @@ default_layer (string): What layer should be selected on start.
 	"default_layer": "bookmarks",
 }
 ```
-## OS Support
-Currently, this plugin has been written and tested only on Windows. I'm planning on adding support for both Linux and Mac.
 ## License
 Copyright (c) 2015 Allen Ray
 
