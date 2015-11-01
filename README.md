@@ -4,7 +4,7 @@ BetterBookmarks changes the way the native bookmarks in Sublime Text 3 work. In 
 #### Git Clone
 First, find out where the packages directory is by going to (Preferences->Browse Packages), use that location in the git clone command.
 #### Package Control
-Coming soon!
+Install from Package Control [here](https://packagecontrol.io/packages/Better%20Bookmarks).
 ## Usage
 Usage is simple because, basically, BetterBookmarks functions just like the native Sublime Text bookmarks.
 * To mark a given selection, run the `better_bookmarks_mark_line` command; even though this command is called bookmark line, it does retain the selection you are bookmarking.
