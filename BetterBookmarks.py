@@ -8,12 +8,74 @@ bbFiles = dict([])
 def Settings():
     return sublime.load_settings('BetterBookmarks.sublime-settings')
 
+def Variable(var_string):
+	return sublime.expand_variables("{:s}".format(var_string), sublime.active_window().extract_variables())
+
 def plugin_loaded():
 	global RegionJSONCoder
 	try:
 		from JsonRegion.JsonRegion import RegionJSONCoder
 	except ImportError:
 		sublime.error_message("Could not import JsonRegion, make sure you've installed it correctly.")
+
+class BetterBookmarksAPI():
+	@staticmethod
+	def has_layer(layer):
+		bb = BBFunctions.get_bb_file()
+		return bb.has_layer()
+
+	def should_bookmark(self, region):
+		bb = BBFunctions.get_bb_file()
+		return bb.should_bookmark()
+
+	@staticmethod
+	def add_marks(self, list, layer=None):
+		bb = BBFunctions.get_bb_file()
+		bb.add_marks(list, layer)
+
+	@staticmethod
+	def load_marks(self):
+		bb = BBFunctions.get_bb_file()
+		bb.load_marks()
+
+	@staticmethod
+	def save_marks(self):
+		bb = BBFunctions.get_bb_file()
+		bb.save_marks()
+
+	@staticmethod
+	def add_mark(self, line, layer=None):
+		bb = BBFunctions.get_bb_file()
+		bb.add_mark(line, layer)
+
+	@staticmethod
+	def clear_marks(self, layer=None):
+		bb = BBFunctions.get_bb_file()
+
+		if layer and bb.has_layer(layer):
+			bb.add_marks([], layer)
+		else:
+			blayer = bb.layer
+			for layer in bb.layers:
+				bb.layer = layer
+				bb.add_marks([])
+
+			bb.layer = blayer
+
+	@staticmethod
+	def has_layer(self, layer):
+		bb = BBFunctions.get_bb_file()
+		return bb.has_layer(layer)
+
+	@staticmethod
+	def change_to_layer(self, layer, hot_create=False):
+		bb = BBFunctions.get_bb_file()
+		return bb.change_to_layer()
+
+	@staticmethod
+	def swap_layer(self, direction):
+		bb = BBFunctions.get_bb_file()
+		bb.swap_layer(direction)
 
 class BBFunctions():
 	@staticmethod
@@ -149,28 +211,19 @@ class BBFile():
 
 class BetterBookmarksMarkLineCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = BBFunctions.get_bb_file()
-		bb.add_mark(self.view.line(self.view.sel()[0]))
+		BetterBookmarksAPI.add_mark(self.view.line(self.view.sel()[0]))
 
 class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = BBFunctions.get_bb_file()
-		bb.add_marks([])
+		BetterBookmarksAPI.add_marks([])
 
 class BetterBookmarksClearAllMarksCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		bb = BBFunctions.get_bb_file()
-		blayer = bb.layer
-		for layer in bb.layers:
-			bb.layer = layer
-			bb.add_marks([])
-
-		bb.layer = blayer
+		BetterBookmarksAPI.clear_marks()
 
 class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 	def run(self, edit, **args):
-		bb = BBFunctions.get_bb_file()
-		bb.swap_layer(args.get("direction"))
+		BetterBookmarksAPI.swap_layer(args.get("direction"))
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
 	def on_load(self, view):
