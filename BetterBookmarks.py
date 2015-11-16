@@ -86,9 +86,10 @@ class BBFile():
 	def refresh_bookmarks(self):
 		self.marks[self.layer] = self.view.get_regions("bookmarks")
 
-	def add_marks(self, list):
-		icon = Settings().get("layer_icons")[self.layer]["icon"]
-		scope = Settings().get("layer_icons")[self.layer]["scope"]
+	def add_marks(self, list, layer=None):
+		usedLayer = layer if layer else self.layer
+		icon = Settings().get("layer_icons")[usedLayer]["icon"]
+		scope = Settings().get("layer_icons")[usedLayer]["scope"]
 
 		self.view.add_regions("bookmarks", list, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
@@ -115,8 +116,8 @@ class BBFile():
 
 		if not layer:
 			layer = self.layer
-		elif not layer == self.layer:
-			print("Cache current layer and load layer from file")
+		# elif not layer == self.layer:
+		# 	print("Cache current layer and load layer from file")
 
 		if not layer in self.marks:
 			self.marks[layer] = []
@@ -132,16 +133,24 @@ class BBFile():
 		if not markFound:
 			newMarks.append(line)
 
-		self.add_marks(newMarks)
+		self.add_marks(newMarks, layer)
 
-	def change_to_layer(self, layer):
+	def has_layer(self, layer):
+		return layer in self.layers
+
+	def change_to_layer(self, layer, hot_create=False):
 		self.layer = layer
 		sublime.status_message(self.layer)
 
 		if self.layer in self.marks:
 			self.add_marks(self.marks[self.layer])
+			return True
 		else:
-			self.marks[self.layer] = []
+			if hot_create:
+				self.marks[self.layer] = []
+				return True
+			else:
+				return False
 
 	def swap_layer(self, direction):
 		if direction == "prev":
