@@ -8,6 +8,13 @@ bbFiles = dict([])
 def Settings():
     return sublime.load_settings('BetterBookmarks.sublime-settings')
 
+def plugin_loaded():
+	global RegionJSONCoder
+	try:
+		from JsonRegion.JsonRegion import RegionJSONCoder
+	except ImportError:
+		sublime.error_message("Could not import JsonRegion, make sure you've installed it correctly.")
+
 class BBFunctions():
 	@staticmethod
 	def get_variable(var_string):
@@ -38,28 +45,6 @@ class BBFunctions():
 			bb.refresh_bookmarks()
 
 		return bb
-
-class RegionJSONCoder(json.JSONEncoder):
-	def default(self, obj):
-		if isinstance(obj, sublime.Region):
-			return {
-				'__type__': 'sublime.Region',
-				'a': obj.a,
-				'b': obj.b,
-			}
-		return json.JSONEncoder.default(self, obj)
-
-	@staticmethod
-	def dict_to_object(d):
-		if '__type__' not in d:
-			return d
-
-		type = d.pop('__type__')
-		if type == 'sublime.Region':
-			return sublime.Region(d.pop('a'), d.pop('b'))
-		else:
-			d['__type__'] = type
-			return d
 
 class BBFile():
 	def __init__(self, view):
