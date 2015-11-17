@@ -24,32 +24,32 @@ class BetterBookmarksAPI():
 		bb = BBFunctions.get_bb_file()
 		return bb.has_layer()
 
-	def should_bookmark(self, region):
+	def should_bookmark(region):
 		bb = BBFunctions.get_bb_file()
 		return bb.should_bookmark()
 
 	@staticmethod
-	def add_marks(self, list, layer=None):
+	def add_marks(list, layer=None):
 		bb = BBFunctions.get_bb_file()
 		bb.add_marks(list, layer)
 
 	@staticmethod
-	def load_marks(self):
+	def load_marks():
 		bb = BBFunctions.get_bb_file()
 		bb.load_marks()
 
 	@staticmethod
-	def save_marks(self):
+	def save_marks():
 		bb = BBFunctions.get_bb_file()
 		bb.save_marks()
 
 	@staticmethod
-	def add_mark(self, line, layer=None):
+	def add_mark(line, layer=None):
 		bb = BBFunctions.get_bb_file()
 		bb.add_mark(line, layer)
 
 	@staticmethod
-	def clear_marks(self, layer=None):
+	def clear_marks(layer=None):
 		bb = BBFunctions.get_bb_file()
 
 		if layer and bb.has_layer(layer):
@@ -63,17 +63,17 @@ class BetterBookmarksAPI():
 			bb.layer = blayer
 
 	@staticmethod
-	def has_layer(self, layer):
+	def has_layer(layer):
 		bb = BBFunctions.get_bb_file()
 		return bb.has_layer(layer)
 
 	@staticmethod
-	def change_to_layer(self, layer, hot_create=False):
+	def change_to_layer(layer, hot_create=False):
 		bb = BBFunctions.get_bb_file()
 		return bb.change_to_layer()
 
 	@staticmethod
-	def swap_layer(self, direction):
+	def swap_layer(direction):
 		bb = BBFunctions.get_bb_file()
 		bb.swap_layer(direction)
 
