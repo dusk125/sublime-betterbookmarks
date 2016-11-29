@@ -1,21 +1,28 @@
 [
 	{
-		"keys": ["f7"], "command": "better_bookmarks_swap_layer",
-		"args": {"direction": "prev"}
+		"keys": ["f7"], "command": "better_bookmarks",
+		"args": {"direction": "prev", "subcommand": "layer_swap"}
 	},
 	{
-		"keys": ["f8"], "command": "better_bookmarks_swap_layer",
-		"args": {"direction": "next"}
+		"keys": ["f8"], "command": "better_bookmarks",
+		"args": {"direction": "next", "subcommand": "layer_swap"}
 	},
-	{ "keys": ["f9"], "command": "prev_bookmark" },
-	{ "keys": ["f10"], "command": "next_bookmark" },
-	{
-		"keys": ["f11"], "command": "better_bookmarks_mark_line",
+	{   
+		"keys": ["f9"], "command": "prev_bookmark"
 	},
 	{
-		"keys": ["f12"], "command": "better_bookmarks_clear_marks",
+		"keys": ["f10"], "command": "next_bookmark"
 	},
 	{
-		"keys": ["shift+f12"], "command": "better_bookmarks_clear_all_marks",
+		"keys": ["f11"], "command": "better_bookmarks",
+		"args": {"subcommand": "mark_line"}
+	},
+	{
+		"keys": ["f12"], "command": "better_bookmarks",
+		"args": {"subcommand": "clear_marks"}
+	},
+	{
+		"keys": ["shift+f12"], "command": "better_bookmarks",
+		"args": {"subcommand": "clear_all"}
 	},
 ]
