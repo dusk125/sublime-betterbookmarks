@@ -17,6 +17,7 @@ def Variable(var, window=None):
 	window = window if window else sublime.active_window()
 	return sublime.expand_variables(var, window.extract_variables())
 
+# Get the path to the cache file.
 def Marks(create=False):
 	directory = '{:s}/User/BetterBookmarks'.format(sublime.packages_path())
 	if create and not os.path.exists(directory):
@@ -24,6 +25,7 @@ def Marks(create=False):
 
 	return Variable(directory + '/${file_base_name}-${file_extension}.bb_cache')
 
+# This class allows the conversion from a sublime.Region to a string (json)
 class RegionJSONCoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, sublime.Region):
@@ -68,6 +70,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		return True
 
+	# Renders the current layers marks to the view
 	def _render(self):
 		marks = self._unhash_marks(self.marks[self.layer])
 		icon = Settings().get('layer_icons')[self.layer]['icon']
@@ -75,6 +78,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		self.view.add_regions('bookmarks', marks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
+	# Converts the marks-as-tuples back into sublime.Regions
 	def _unhash_marks(self, marks):
 		newMarks = []
 		for mark in marks:
@@ -82,6 +86,8 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		return newMarks
 
+	# In order to use some list functions, python needs to be able to see a sublime.Region as something simpler;
+	# 	in this case a tuple.
 	def _hash_marks(self, marks):
 		newMarks = []
 		for mark in marks:
@@ -89,6 +95,9 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		return newMarks
 
+	# Internal function for adding a list of marks to the existing ones.
+	# 	Any marks that exist in both lists will be removed as this case is when the user is 
+	# 		attempting to remove a mark.
 	def _add_marks(self, newMarks, layer=None):
 		layer = layer if layer else self.layer
 		marks = []
@@ -112,6 +121,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		if layer is self.layer:
 			self._render()
 
+	# Changes the layer to the given one and updates any and all of the status indicators.
 	def _change_to_layer(self, layer):
 		self.layer = layer
 		status_name = 'bb_layer_status'
