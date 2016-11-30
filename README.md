@@ -52,23 +52,32 @@ Usage is simple because, basically, BetterBookmarks functions just like the nati
 ]
 ```
 ## Settings
-verbose (true/false): Should BetterBookmarks print out things to the console (usually unseen by the user) when it's doing caching operations.
+#### verbose (true/false):
+Should BetterBookmarks print out things to the console (usually unseen by the user) when it's doing caching operations.
+	
+#### auto_save_marks (true/false):
+Should BetterBookmarks save marks on when the current file is saved.
 
-auto_save_marks (true/false): Should BetterBookmarks save marks on when the current file is saved.
+#### load_marks_on_load (true/false):
+Should BetterBookmarks load saved marks automatically when a file is opened.
 
-load_marks_on_load (true/false): Should BetterBookmarks load saved marks automatically when a file is opened.
+#### cleanup_empty_cache_on_close (true/false):
+If the cache is empty, should BetterBookmarks delete the cached mark file (for the file being closed).
 
-cleanup_empty_cache_on_close (true/false): If the cache is empty, should BetterBookmarks delete the cached mark file (for the file being closed).
+#### layer_icons (name : {icon, scope}):
+What layers should be available in editor. Icon is the path to the icon file. Scope controls the shading of the icon. NOTE: All of those listed in the example can be edited/removed.
 
-layer_icons (name : {icon, scope}): What layers should be available in editor. Icon is the path to the icon file. Scope controls the shading of the icon. NOTE: All of those listed in the example can be edited/removed.
+#### default_layer (string):
+What layer should be selected on start.
 
-default_layer (string): What layer should be selected on start.
+#### layer_status_location ([string]):
+Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
 
-layer_status_location ([string]): Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
-	Possible values:
-		"popup": Shows a popup with the name of the currently selected layer at the cursor location.
-		"temporary": Shows the layer name in the status bar for a brief amount of time.
-		"permanent": Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
+##### Possible values:
+* `popup`: Shows a popup with the name of the currently selected layer at the cursor location.
+* `temporary`: Shows the layer name in the status bar for a brief amount of time.
+* `permanent`: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
+	
 #### Example
 ```
 {
@@ -82,7 +91,7 @@ layer_status_location ([string]): Where, if anywhere, should BetterBookmarks sho
 		"todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
 	},
 	"default_layer": "bookmarks",
-	"layer_status_location": ["permanent"]
+	"layer_status_location": ["permanent", "popup"]
 }
 ```
 ## License
