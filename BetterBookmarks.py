@@ -114,8 +114,6 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		self.marks[layer] = marks
 
-		print(layer)
-		print(self.layer)
 		if layer == self.layer:
 			self._render()
 
