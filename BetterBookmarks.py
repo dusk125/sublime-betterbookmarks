@@ -171,6 +171,15 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			bb.swap_layer(args.get('direction'))
 
 class BetterBookmarksEventListener(sublime_plugin.EventListener):
+	def __init__(self):
+		sublime_plugin.EventListener.__init__(self)
+		Settings().add_on_change('layer_icons', self.on_layer_icon_change)
+
+	def on_layer_icon_change(self):
+		for bb in bbFiles.items():
+			bb[1].layers.clear()
+			bb[1].layers.extend(Settings().get('layer_icons'))
+
 	def on_load(self, view):
 		if Settings().get('load_marks_on_load'):
 			filename = Filename()
@@ -185,13 +194,8 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 			bb = GetBB()
 
 			if bb.marks.keys():
+				print(bb.marks.keys())
 				bb.save_marks()
-
-	def on_post_save(self, view):
-		if Variable('${file_name}') == 'BetterBookmarks.sublime-settings':
-			for bb in bbFiles.items():
-				bb[1].layers.clear()
-				bb[1].layers.extend(Settings().get('layer_icons'))
 
 	def on_pre_close(self, view):
 		if Settings().get('cleanup_empty_cache_on_close'):
