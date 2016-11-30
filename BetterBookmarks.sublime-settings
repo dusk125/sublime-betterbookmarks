@@ -1,4 +1,5 @@
 {
+	"verbose": true,
 	"auto_save_marks": true,
 	"load_marks_on_load": true,
 	"cleanup_empty_cache_on_close": true,
