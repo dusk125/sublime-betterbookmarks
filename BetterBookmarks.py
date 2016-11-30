@@ -25,6 +25,24 @@ def Marks(create=False):
 
 	return Variable(directory + '/${file_base_name}-${file_extension}.bb_cache')
 
+
+# Converts the marks-as-tuples back into sublime.Regions
+def UnhashMarks(marks):
+	newMarks = []
+	for mark in marks:
+		newMarks.append(sublime.Region(mark[0], mark[1]))
+
+	return newMarks
+
+# In order to use some list functions, python needs to be able to see a sublime.Region as something simpler;
+# 	in this case a tuple.
+def HashMarks(marks):
+	newMarks = []
+	for mark in marks:
+		newMarks.append((mark.a, mark.b))
+
+	return newMarks
+
 # This class allows the conversion from a sublime.Region to a string (json)
 class RegionJSONCoder(json.JSONEncoder):
 	def default(self, obj):
@@ -59,9 +77,6 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		self.marks = {}
 		for layer in Settings().get('layer_icons'):
 			self.marks[layer] = []
-# Unused
-	# def _should_bookmark(self, layer, line):
-	# 	return self._unhash_marks in not self.marks[layer]
 
 	def _is_empty(self):
 		for layer in self.layers:
@@ -72,28 +87,11 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 	# Renders the current layers marks to the view
 	def _render(self):
-		marks = self._unhash_marks(self.marks[self.layer])
+		marks = UnhashMarks(self.marks[self.layer])
 		icon = Settings().get('layer_icons')[self.layer]['icon']
 		scope = Settings().get('layer_icons')[self.layer]['scope']
 
 		self.view.add_regions('bookmarks', marks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
-
-	# Converts the marks-as-tuples back into sublime.Regions
-	def _unhash_marks(self, marks):
-		newMarks = []
-		for mark in marks:
-			newMarks.append(sublime.Region(mark[0], mark[1]))
-
-		return newMarks
-
-	# In order to use some list functions, python needs to be able to see a sublime.Region as something simpler;
-	# 	in this case a tuple.
-	def _hash_marks(self, marks):
-		newMarks = []
-		for mark in marks:
-			newMarks.append((mark.a, mark.b))
-
-		return newMarks
 
 	# Internal function for adding a list of marks to the existing ones.
 	# 	Any marks that exist in both lists will be removed as this case is when the user is 
@@ -103,8 +101,6 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		marks = []
 
 		if newMarks:
-			newMarks = self._hash_marks(newMarks)
-
 			if not layer in self.marks:
 				self.marks[layer] = []
 
@@ -118,7 +114,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		self.marks[layer] = marks
 
-		if layer is self.layer:
+		if layer == self.layer:
 			self._render()
 
 	# Changes the layer to the given one and updates any and all of the status indicators.
@@ -147,10 +143,10 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		subcommand = args['subcommand']
 		
 		if subcommand == 'mark_line':
-			line = args['line'] if 'line' in args else view.sel()[0]
+			line = args['line'] if 'line' in args else HashMarks(view.sel())
 			layer = args['layer'] if 'layer' in args else self.layer
 
-			self._add_marks([line], layer)
+			self._add_marks(line, layer)
 		elif subcommand == 'clear_marks':
 			layer = args['layer'] if 'layer' in args else self.layer
 			self._add_marks([], layer)
