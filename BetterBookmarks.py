@@ -103,8 +103,11 @@ class BBFile():
 			pass
 
 	def save_marks(self):
-		with open(Marks(), 'w') as fp:
-			json.dump(self.marks, fp, cls=RegionJSONCoder)
+		for layer in self.layers:
+			if self.marks[layer]:
+				with open(Marks(), 'w') as fp:
+					json.dump(self.marks, fp, cls=RegionJSONCoder)
+				break
 
 	def add_mark(self, line, layer=None):
 		newMarks = []
@@ -191,11 +194,7 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 
 	def on_pre_save(self, view):
 		if Settings().get('auto_save_marks'):
-			bb = GetBB()
-
-			if bb.marks.keys():
-				print(bb.marks.keys())
-				bb.save_marks()
+			GetBB().save_marks()
 
 	def on_pre_close(self, view):
 		if Settings().get('cleanup_empty_cache_on_close'):
