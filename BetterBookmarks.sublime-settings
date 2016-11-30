@@ -1,12 +1,13 @@
 {
-	"automark_functions": false,
+	"verbose": true,
 	"auto_save_marks": true,
 	"load_marks_on_load": true,
 	"cleanup_empty_cache_on_close": true,
 	"layer_icons": {
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
-		"functions": {"icon": "Packages/BetterBookmarks/icons/function.png", "scope": "comment"},
-		"todos": {"icon": "Packages/BetterBookmarks/icons/todo.png", "scope": "comment"},
+		"functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
+		"todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
 	},
 	"default_layer": "bookmarks",
+	"layer_status_location": ["permanent"]
 }
