@@ -49,26 +49,17 @@ class RegionJSONCoder(json.JSONEncoder):
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
 		sublime_plugin.TextCommand.__init__(self, edit)
-		Settings().add_on_change('layer_icons', self._on_settings_change)
-
 		self.filename = Variable('${file_name}')
-		self._on_settings_change()
+		self.layers = collections.deque(Settings().get('layer_icons'))
 		self.layer = Settings().get('default_layer')
 		while not self.layers[0] == self.layer:
 			self.layers.rotate(1)
 		self.marks = {}
 		for layer in Settings().get('layer_icons'):
 			self.marks[layer] = []
-
-	def _on_settings_change(self):
-		self.layers = collections.deque(Settings().get('layer_icons'))
-
-	def _should_bookmark(self, layer, line):
-		for bookmark in self.marks[layer]:
-			if line.contains(bookmark):
-				return False
-
-		return True
+# Unused
+	# def _should_bookmark(self, layer, line):
+	# 	return self._unhash_marks in not self.marks[layer]
 
 	def _is_empty(self):
 		for layer in self.layers:
@@ -123,7 +114,22 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 	def _change_to_layer(self, layer):
 		self.layer = layer
-		sublime.status_message(self.layer)
+		status_name = 'bb_layer_status'
+
+		status = Settings().get('layer_status_location', ['permanent'])
+
+		if 'temporary' in status:
+			sublime.status_message(self.layer)
+		if 'permanent' in status:
+			self.view.set_status(status_name, 'Bookmark Layer: {:s}'.format(self.layer))
+		else:
+			self.view.erase_status(status_name)
+		if 'popup' in status:
+			if self.view.is_popup_visible():
+				self.view.update_popup(self.layer)
+			else:
+				self.view.show_popup(self.layer, 0, -1, 1000, 1000, None, None)
+
 		self._render()
 
 	def run(self, edit, **args):

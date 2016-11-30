@@ -9,4 +9,5 @@
 		"todos": {"icon": "Packages/BetterBookmarks/icons/todo.png", "scope": "comment"},
 	},
 	"default_layer": "bookmarks",
+	"layer_status_location": ["permanent"]
 }
