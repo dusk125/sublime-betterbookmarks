@@ -14,7 +14,7 @@
 						[
 							{
 								"command": "open_file",
-								"args": {"file": "${packages}/BetterBookmarks/BetterBookmarks.sublime-settings"},
+								"args": {"file": "${packages}/Better Bookmarks/BetterBookmarks.sublime-settings"},
 								"caption": "Settings – Default"
 							},
 							{
@@ -26,7 +26,7 @@
 							{
 								"command": "open_file",
 								"args": {
-									"file": "${packages}/BetterBookmarks/Default.sublime-keymap"
+									"file": "${packages}/Better Bookmarks/Default.sublime-keymap"
 								},
 								"caption": "Key Bindings – Default"
 							},
