@@ -4,7 +4,9 @@ import json
 
 # Add our BetterBookmarks cache folder if it doesn't exist
 def plugin_loaded():
-	Marks(True)
+	directory = '{:s}/User/BetterBookmarks'.format(sublime.packages_path())
+	if not os.path.exists(directory):
+		os.makedirs(directory)
 
 def Log(message):
 	if Settings().get('verbose', False):
@@ -16,15 +18,6 @@ def Settings():
 def Variable(var, window=None):
 	window = window if window else sublime.active_window()
 	return sublime.expand_variables(var, window.extract_variables())
-
-# Get the path to the cache file.
-def Marks(create=False):
-	directory = '{:s}/User/BetterBookmarks'.format(sublime.packages_path())
-	if create and not os.path.exists(directory):
-		os.makedirs(directory)
-
-	return Variable(directory + '/${file_base_name}-${file_extension}.bb_cache')
-
 
 # Converts the marks-as-tuples back into sublime.Regions
 def UnhashMarks(marks):
@@ -85,6 +78,10 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		return True
 
+	# Get the path to the cache file.
+	def _marks(self):
+		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), self.filename.replace('.', '-'))
+
 	# Renders the current layers marks to the view
 	def _render(self):
 		marks = UnhashMarks(self.marks[self.layer])
@@ -138,10 +135,16 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		self._render()
 
+	def _save_marks(self):
+		if not self._is_empty():
+			Log('Saving BBFile for ' + self.filename)
+			with open(self._marks(), 'w') as fp:
+				json.dump(self.marks, fp, cls=RegionJSONCoder)
+
 	def run(self, edit, **args):
 		view = self.view
 		subcommand = args['subcommand']
-		
+
 		if subcommand == 'mark_line':
 			line = args['line'] if 'line' in args else HashMarks(view.sel())
 			layer = args['layer'] if 'layer' in args else self.layer
@@ -166,7 +169,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		elif subcommand == 'on_load':
 			Log('Loading BBFile for ' + self.filename)
 			try:
-				with open(Marks(), 'r') as fp:
+				with open(self._marks(), 'r') as fp:
 					marks = json.load(fp, object_hook=RegionJSONCoder.dict_to_object)
 					for layer, regions in marks.items():
 						self.marks[layer] = regions
@@ -174,15 +177,14 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 				pass
 			self._change_to_layer(Settings().get('default_layer'))
 		elif subcommand == 'on_save':
-			if not self._is_empty():
-				Log('Saving BBFile for ' + self.filename)
-				with open(Marks(), 'w') as fp:
-					json.dump(self.marks, fp, cls=RegionJSONCoder)
+			self._save_marks()
 		elif subcommand == 'on_close':
+			if Settings().get('cache_marks_on_close', False):
+				self._save_marks()
 			if self._is_empty():
 				Log('Removing BBFile for ' + self.filename)
 				try:
-					os.remove(Marks())
+					os.remove(self._marks())
 				except FileNotFoundError as e:
 					pass
 
@@ -194,13 +196,13 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 		view.run_command('better_bookmarks', {'subcommand': subcommand})
 
 	def on_load_async(self, view):
-		if Settings().get('load_marks_on_load'):
+		if Settings().get('uncache_marks_on_load'):
 			self._contact(view, 'on_load')
 
-	def on_pre_save_async(self, view):
-		if Settings().get('auto_save_marks'):
+	def on_pre_save(self, view):
+		if Settings().get('cache_marks_on_save'):
 			self._contact(view, 'on_save')
 
-	def on_pre_close(self, view):
-		if Settings().get('cleanup_empty_cache_on_close'):
+	def on_close(self, view):
+		if view.file_name() and Settings().get('cleanup_empty_cache_on_close'):
 			self._contact(view, 'on_close')
