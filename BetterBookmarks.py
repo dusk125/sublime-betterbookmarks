@@ -146,7 +146,10 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		subcommand = args['subcommand']
 
 		if subcommand == 'mark_line':
-			line = args['line'] if 'line' in args else HashMarks(view.sel())
+			selection = view.sel()
+			if Settings().get('mark_whole_line', False):
+				selection = view.lines(selection[0])
+			line = args['line'] if 'line' in args else HashMarks(selection)
 			layer = args['layer'] if 'layer' in args else self.layer
 
 			self._add_marks(line, layer)

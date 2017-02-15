@@ -21,11 +21,13 @@
 	"default_layer": "bookmarks",
 	/*
 	 * Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
-     *
+	 *
 	 * Possible values:
 	 *    popup: Shows a popup with the name of the currently selected layer at the cursor location.
 	 *    temporary: Shows the layer name in the status bar for a brief amount of time.
 	 *    permanent: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
 	 */
-	"layer_status_location": ["permanent"]
+	"layer_status_location": ["permanent"],
+	// If true, BetterBookmarks will mark the entire line, or each line in a multi-line selection, instead of marking the exact selection (like Sublime Text does by default).
+	"mark_whole_line": false
 }
