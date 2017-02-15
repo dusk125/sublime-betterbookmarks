@@ -82,7 +82,9 @@ Usage is simple because, basically, BetterBookmarks functions just like the nati
 	 *    temporary: Shows the layer name in the status bar for a brief amount of time.
 	 *    permanent: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
 	 */
-	"layer_status_location": ["permanent"]
+	"layer_status_location": ["permanent"],
+	// If true, BetterBookmarks will mark the entire line, or each line in a multi-line selection, instead of marking the exact selection (like Sublime Text does by default).
+	"mark_whole_line": false
 }
 
 ```
