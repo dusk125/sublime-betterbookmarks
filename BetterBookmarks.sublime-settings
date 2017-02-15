@@ -21,7 +21,7 @@
 	"default_layer": "bookmarks",
 	/*
 	 * Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
-    *
+	 *
 	 * Possible values:
 	 *    popup: Shows a popup with the name of the currently selected layer at the cursor location.
 	 *    temporary: Shows the layer name in the status bar for a brief amount of time.
