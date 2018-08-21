@@ -19,7 +19,14 @@ def Variable(var, window=None):
 	window = window if window else sublime.active_window()
 	return sublime.expand_variables(var, window.extract_variables())
 
-# Converts the marks-as-tuples back into sublime.Regions
+# Takes a region and converts it to a list taking into consideration if
+#	the user wants us to care about the order of the selection.
+def FixRegion(mark):
+	if Settings().get("ignore_cursor", True):
+		return [mark.begin(), mark.end()]
+	return [mark.a, mark.b]
+
+# Converts the marks-as-lists back into sublime.Regions
 def UnhashMarks(marks):
 	newMarks = []
 	for mark in marks:
@@ -27,37 +34,13 @@ def UnhashMarks(marks):
 
 	return newMarks
 
-# In order to use some list functions, python needs to be able to see a sublime.Region as something simpler;
-# 	in this case a tuple.
+# In order to use some list functions, python needs to be able to see
+# 	a sublime.Region as something simpler; in this case, a list.
 def HashMarks(marks):
 	newMarks = []
 	for mark in marks:
-		newMarks.append((mark.a, mark.b))
-
+		newMarks.append(FixRegion(mark))
 	return newMarks
-
-# This class allows the conversion from a sublime.Region to a string (json)
-class RegionJSONCoder(json.JSONEncoder):
-	def default(self, obj):
-		if isinstance(obj, sublime.Region):
-			return {
-				'__type__': 'sublime.Region',
-				'a': obj.a,
-				'b': obj.b,
-			}
-		return json.JSONEncoder.default(self, obj)
-
-	@staticmethod
-	def dict_to_object(d):
-		if '__type__' not in d:
-			return d
-
-		type = d.pop('__type__')
-		if type == 'sublime.Region':
-			return sublime.Region(d.pop('a'), d.pop('b'))
-		else:
-			d['__type__'] = type
-			return d
 
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
@@ -79,7 +62,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		return True
 
 	# Get the path to the cache file.
-	def _marks(self):
+	def _get_cache_filename(self):
 		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), self.filename.replace('.', '-'))
 
 	# Renders the current layers marks to the view
@@ -102,6 +85,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 				self.marks[layer] = []
 
 			marks = self.marks[layer]
+			newMarks = HashMarks(newMarks)
 
 			for mark in newMarks:
 				if mark in marks:
@@ -138,8 +122,16 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def _save_marks(self):
 		if not self._is_empty():
 			Log('Saving BBFile for ' + self.filename)
-			with open(self._marks(), 'w') as fp:
-				json.dump(self.marks, fp, cls=RegionJSONCoder)
+			with open(self._get_cache_filename(), 'w') as fp:
+				json.dump(self.marks, fp)
+
+	def _load_marks(self):
+		Log('Loading BBFile for ' + self.filename)
+		try:
+			with open(self._get_cache_filename(), 'r') as fp:
+				self.marks = json.load(fp)
+		except Exception as e:
+			pass
 
 	def run(self, edit, **args):
 		view = self.view
@@ -149,7 +141,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			selection = view.sel()
 			if Settings().get('mark_whole_line', False):
 				selection = view.lines(selection[0])
-			line = args['line'] if 'line' in args else HashMarks(selection)
+			line = args['line'] if 'line' in args else selection
 			layer = args['layer'] if 'layer' in args else self.layer
 
 			self._add_marks(line, layer)
@@ -170,14 +162,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 			self._change_to_layer(self.layers[0])
 		elif subcommand == 'on_load':
-			Log('Loading BBFile for ' + self.filename)
-			try:
-				with open(self._marks(), 'r') as fp:
-					marks = json.load(fp, object_hook=RegionJSONCoder.dict_to_object)
-					for layer, regions in marks.items():
-						self.marks[layer] = regions
-			except Exception as e:
-				pass
+			self._load_marks()
 			self._change_to_layer(Settings().get('default_layer'))
 		elif subcommand == 'on_save':
 			self._save_marks()
@@ -187,7 +172,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			if self._is_empty():
 				Log('Removing BBFile for ' + self.filename)
 				try:
-					os.remove(self._marks())
+					os.remove(self._get_cache_filename())
 				except FileNotFoundError as e:
 					pass
 
