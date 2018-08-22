@@ -31,5 +31,5 @@
 		"description": "Removes all marks from ALL layers.",
 		"keys": ["shift+f12"], "command": "better_bookmarks",
 		"args": {"subcommand": "clear_all"}
-	},
+	}
 ]

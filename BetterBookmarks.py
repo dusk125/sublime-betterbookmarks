@@ -31,7 +31,6 @@ def UnhashMarks(marks):
 	newMarks = []
 	for mark in marks:
 		newMarks.append(sublime.Region(mark[0], mark[1]))
-
 	return newMarks
 
 # In order to use some list functions, python needs to be able to see
