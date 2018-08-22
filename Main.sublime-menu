@@ -13,29 +13,21 @@
 						"children":
 						[
 							{
-								"command": "open_file",
-								"args": {"file": "${packages}/Better Bookmarks/BetterBookmarks.sublime-settings"},
-								"caption": "Settings – Default"
-							},
-							{
-								"command": "open_file",
-								"args": {"file": "${packages}/User/BetterBookmarks.sublime-settings"},
-								"caption": "Settings – User"
-							},
-							{ "caption": "-" },
-							{
-								"command": "open_file",
+								"caption": "Settings",
+								"command": "edit_settings",
 								"args": {
-									"file": "${packages}/Better Bookmarks/Default.sublime-keymap"
-								},
-								"caption": "Key Bindings – Default"
+									"base_file": "${packages}/Better Bookmarks/BetterBookmarks.sublime-settings",
+									"default": "{\n$0\n}\n"
+								}
 							},
+							{"caption": "-"},
 							{
-								"command": "open_file",
+								"caption": "Key Bindings",
+								"command": "edit_settings",
 								"args": {
-									"file": "${packages}/User/BetterBookmarks.sublime-keymap"
-								},
-								"caption": "Key Bindings – User"
+									"base_file": "${packages}/Better Bookmarks/Default.sublime-keymap",
+									"default": "{\n$0\n}\n"
+								}
 							}
 						]
 					}
