@@ -55,7 +55,7 @@ Usage is simple because, basically, BetterBookmarks functions just like the nati
 ```
 {
 	// Should BetterBookmarks print out things to the console (usually unseen by the user) when it's doing caching operations.
-	"verbose": false,
+	"verbose": true,
 	// Should BetterBookmarks save marks on when the current file is saved.
 	"cache_marks_on_save": true,
 	// Should BetterBookmarks save marks on when the current file is closed.
@@ -69,8 +69,8 @@ Usage is simple because, basically, BetterBookmarks functions just like the nati
 	"layer_icons": {
 		// This one is the default Sublime bookmark
 		"bookmarks": {"icon": "bookmark", "scope": "string"},
-		"functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
-		"todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
+		// "functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
+		// "todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
 	},
 	// What layer should be selected on start.
 	"default_layer": "bookmarks",
@@ -84,7 +84,9 @@ Usage is simple because, basically, BetterBookmarks functions just like the nati
 	 */
 	"layer_status_location": ["permanent"],
 	// If true, BetterBookmarks will mark the entire line, or each line in a multi-line selection, instead of marking the exact selection (like Sublime Text does by default).
-	"mark_whole_line": false
+	"mark_whole_line": false,
+	// If true, ignore the order of the selection; this causes the bookmark to always be min->max.
+	"ignore_cursor": false
 }
 
 ```
