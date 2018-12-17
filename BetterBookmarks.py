@@ -88,6 +88,8 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			newMarks = HashMarks(newMarks)
 
 			for mark in newMarks:
+				isPoint = mark[0] - mark[1] == 0
+				print(mark, isPoint)
 				if mark in marks:
 					marks.remove(mark)
 				else:
@@ -139,9 +141,15 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		subcommand = args['subcommand']
 
 		if subcommand == 'mark_line':
-			selection = view.sel()
-			if Settings().get('mark_whole_line', False):
-				selection = view.lines(selection[0])
+			mode = Settings().get('marking_mode', 'selection')
+
+			if mode == 'line':
+				selection = view.lines(view.sel()[0])
+			elif mode == 'selection':
+				selection = view.sel()
+			else:
+				sublime.error_message('Invalid BetterBookmarks setting: \'{}\' is invalid for \'marking_mode\''.format(mode))
+
 			line = args['line'] if 'line' in args else selection
 			layer = args['layer'] if 'layer' in args else self.layer
 

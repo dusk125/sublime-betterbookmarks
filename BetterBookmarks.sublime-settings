@@ -28,8 +28,14 @@
 	 *    permanent: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
 	 */
 	"layer_status_location": ["permanent"],
-	// If true, BetterBookmarks will mark the entire line, or each line in a multi-line selection, instead of marking the exact selection (like Sublime Text does by default).
-	"mark_whole_line": false,
+	// How should marking behave.
+	// 
+	// Possible values:
+	// 	selection: 	Adds one bookmark for an entire selection.
+	// 					Overlapping marks will combine to form a larger selection.
+	// 					"Point" marks will unmark the entire selection
+	// 	line: Toggles a mark on each line of the selection.
+	"marking_mode": "selection",
 	// If true, ignore the order of the selection; this causes the bookmark to always be min->max.
 	"ignore_cursor": false
 }
