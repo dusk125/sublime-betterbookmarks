@@ -1,6 +1,4 @@
-import sublime, sublime_plugin, os
-import collections
-import json
+import sublime, sublime_plugin, os, collections, json, hashlib
 
 # Add our BetterBookmarks cache folder if it doesn't exist
 def plugin_loaded():
@@ -62,7 +60,10 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 	# Get the path to the cache file.
 	def _get_cache_filename(self):
-		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), self.filename.replace('.', '-'))
+		h = hashlib.md5()
+		h.update(self.view.file_name().encode())
+		filename = str(h.hexdigest())
+		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), filename)
 
 	# Renders the current layers marks to the view
 	def _render(self):
@@ -122,6 +123,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		if not self._is_empty():
 			Log('Saving BBFile for ' + self.filename)
 			with open(self._get_cache_filename(), 'w') as fp:
+				self.marks['filename'] = self.view.file_name()
 				json.dump(self.marks, fp)
 
 	def _load_marks(self):
