@@ -1,266 +1,197 @@
-import sublime, sublime_plugin, os
-import collections
-import json
+import sublime, sublime_plugin, os, collections, json, hashlib
 
-global bbFiles
-bbFiles = dict([])
+# Add our BetterBookmarks cache folder if it doesn't exist
+def plugin_loaded():
+	directory = '{:s}/User/BetterBookmarks'.format(sublime.packages_path())
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
+def Log(message):
+	if Settings().get('verbose', False):
+		print('[BetterBookmarks] ' + message)
 
 def Settings():
     return sublime.load_settings('BetterBookmarks.sublime-settings')
 
-def Variable(var_string):
-	return sublime.expand_variables("{:s}".format(var_string), sublime.active_window().extract_variables())
+def Variable(var, window=None):
+	window = window if window else sublime.active_window()
+	return sublime.expand_variables(var, window.extract_variables())
 
-def plugin_loaded():
-	global RegionJSONCoder
-	try:
-		from JsonRegion.JsonRegion import RegionJSONCoder
-	except ImportError:
-		sublime.error_message("Could not import JsonRegion, make sure you've installed it correctly.")
+# Takes a region and converts it to a list taking into consideration if
+#	the user wants us to care about the order of the selection.
+def FixRegion(mark):
+	if Settings().get("ignore_cursor", True):
+		return [mark.begin(), mark.end()]
+	return [mark.a, mark.b]
 
-class BetterBookmarksAPI():
-	@staticmethod
-	def has_layer(layer):
-		bb = BBFunctions.get_bb_file()
-		return bb.has_layer()
+# Converts the marks-as-lists back into sublime.Regions
+def UnhashMarks(marks):
+	newMarks = []
+	for mark in marks:
+		newMarks.append(sublime.Region(mark[0], mark[1]))
+	return newMarks
 
-	def should_bookmark(region):
-		bb = BBFunctions.get_bb_file()
-		return bb.should_bookmark()
+# In order to use some list functions, python needs to be able to see
+# 	a sublime.Region as something simpler; in this case, a list.
+def HashMarks(marks):
+	newMarks = []
+	for mark in marks:
+		newMarks.append(FixRegion(mark))
+	return newMarks
 
-	@staticmethod
-	def add_marks(list, layer=None):
-		bb = BBFunctions.get_bb_file()
-		bb.add_marks(list, layer)
-
-	@staticmethod
-	def load_marks():
-		bb = BBFunctions.get_bb_file()
-		bb.load_marks()
-
-	@staticmethod
-	def save_marks():
-		bb = BBFunctions.get_bb_file()
-		bb.save_marks()
-
-	@staticmethod
-	def add_mark(line, layer=None):
-		bb = BBFunctions.get_bb_file()
-		bb.add_mark(line, layer)
-
-	@staticmethod
-	def clear_marks(layer=None):
-		bb = BBFunctions.get_bb_file()
-
-		if layer and bb.has_layer(layer):
-			bb.add_marks([], layer)
-		else:
-			blayer = bb.layer
-			for layer in bb.layers:
-				bb.layer = layer
-				bb.add_marks([])
-
-			bb.layer = blayer
-
-	@staticmethod
-	def has_layer(layer):
-		bb = BBFunctions.get_bb_file()
-		return bb.has_layer(layer)
-
-	@staticmethod
-	def change_to_layer(layer, hot_create=False):
-		bb = BBFunctions.get_bb_file()
-		return bb.change_to_layer()
-
-	@staticmethod
-	def swap_layer(direction):
-		bb = BBFunctions.get_bb_file()
-		bb.swap_layer(direction)
-
-class BBFunctions():
-	@staticmethod
-	def get_variable(var_string):
-		return sublime.expand_variables("{:s}".format(var_string), sublime.active_window().extract_variables())
-
-	@staticmethod
-	def get_current_file_name():
-		return BBFunctions.get_variable("${file}")
-
-	@staticmethod
-	def get_marks_filename():
-		directory = "{:s}/User/BetterBookmarks".format(sublime.packages_path())
-		if not os.path.exists(directory):
-			os.makedirs(directory)
-
-		return "{:s}/{:s}-{:s}.bb_cache".format(directory, BBFunctions.get_variable("${file_base_name}"), BBFunctions.get_variable("${file_extension}"))
-
-	@staticmethod
-	def get_bb_file():
-		bb = None
-		filename = BBFunctions.get_current_file_name()
-
-		if filename in bbFiles:
-			bb = bbFiles[filename]
-		else:
-			bb = BBFile(sublime.active_window().active_view())
-			bbFiles[filename] = bb
-			bb.refresh_bookmarks()
-
-		return bb
-
-class BBFile():
-	def __init__(self, view):
-		self.view = view
-		self.filename = BBFunctions.get_current_file_name()
-		self.layers = collections.deque(Settings().get("layer_icons"))
-		self.layer = Settings().get("default_layer")
+class BetterBookmarksCommand(sublime_plugin.TextCommand):
+	def __init__(self, edit):
+		sublime_plugin.TextCommand.__init__(self, edit)
+		self.filename = Variable('${file_name}')
+		self.layers = collections.deque(Settings().get('layer_icons'))
+		self.layer = Settings().get('default_layer')
 		while not self.layers[0] == self.layer:
 			self.layers.rotate(1)
-		self.marks = dict([])
-		for layer in Settings().get("layer_icons"):
+		self.marks = {}
+		for layer in Settings().get('layer_icons'):
 			self.marks[layer] = []
 
-	def should_bookmark(self, region):
-		bookmarks = self.view.get_regions("bookmarks")
-		line = self.view.line(region)
-
-		for bookmark in bookmarks:
-			if line.contains(bookmark):
+	def _is_empty(self):
+		for layer in self.layers:
+			if self.marks[layer]:
 				return False
 
 		return True
 
-	def refresh_bookmarks(self):
-		self.marks[self.layer] = self.view.get_regions("bookmarks")
+	# Get the path to the cache file.
+	def _get_cache_filename(self):
+		h = hashlib.md5()
+		h.update(self.view.file_name().encode())
+		filename = str(h.hexdigest())
+		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), filename)
 
-	def add_marks(self, list, layer=None):
-		usedLayer = layer if layer else self.layer
-		icon = Settings().get("layer_icons")[usedLayer]["icon"]
-		scope = Settings().get("layer_icons")[usedLayer]["scope"]
+	# Renders the current layers marks to the view
+	def _render(self):
+		marks = UnhashMarks(self.marks[self.layer])
+		icon = Settings().get('layer_icons')[self.layer]['icon']
+		scope = Settings().get('layer_icons')[self.layer]['scope']
 
-		self.view.add_regions("bookmarks", list, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
+		self.view.add_regions('bookmarks', marks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
-		self.refresh_bookmarks()
+	# Internal function for adding a list of marks to the existing ones.
+	# 	Any marks that exist in both lists will be removed as this case is when the user is 
+	# 		attempting to remove a mark.
+	def _add_marks(self, newMarks, layer=None):
+		layer = layer if layer else self.layer
+		marks = []
 
-	def load_marks(self):
+		if newMarks:
+			if not layer in self.marks:
+				self.marks[layer] = []
+
+			marks = self.marks[layer]
+			newMarks = HashMarks(newMarks)
+
+			for mark in newMarks:
+				if mark in marks:
+					marks.remove(mark)
+				else:
+					marks.append(mark)
+
+		self.marks[layer] = marks
+
+		if layer == self.layer:
+			self._render()
+
+	# Changes the layer to the given one and updates any and all of the status indicators.
+	def _change_to_layer(self, layer):
+		self.layer = layer
+		status_name = 'bb_layer_status'
+
+		status = Settings().get('layer_status_location', ['permanent'])
+
+		if 'temporary' in status:
+			sublime.status_message(self.layer)
+		if 'permanent' in status:
+			self.view.set_status(status_name, 'Bookmark Layer: {:s}'.format(self.layer))
+		else:
+			self.view.erase_status(status_name)
+		if 'popup' in status:
+			if self.view.is_popup_visible():
+				self.view.update_popup(self.layer)
+			else:
+				self.view.show_popup(self.layer, 0, -1, 1000, 1000, None, None)
+
+		self._render()
+
+	def _save_marks(self):
+		if not self._is_empty():
+			Log('Saving BBFile for ' + self.filename)
+			with open(self._get_cache_filename(), 'w') as fp:
+				self.marks['filename'] = self.view.file_name()
+				json.dump(self.marks, fp)
+
+	def _load_marks(self):
+		Log('Loading BBFile for ' + self.filename)
 		try:
-			with open(BBFunctions.get_marks_filename(), 'r') as fp:
-				self.marks = json.load(fp, object_hook=RegionJSONCoder.dict_to_object)
-				for tup in self.marks.items():
-					self.layer = tup[0]
-					self.add_marks(tup[1])
-				self.layer = Settings().get("default_layer")
+			with open(self._get_cache_filename(), 'r') as fp:
+				self.marks = json.load(fp)
 		except Exception as e:
 			pass
 
-	def save_marks(self):
-		with open(BBFunctions.get_marks_filename(), 'w') as fp:
-			json.dump(self.marks, fp, cls=RegionJSONCoder)
-
-	def add_mark(self, line, layer=None):
-		newMarks = []
-		markFound = False
-
-		if not layer:
-			layer = self.layer
-		# elif not layer == self.layer:
-		# 	print("Cache current layer and load layer from file")
-
-		if not layer in self.marks:
-			self.marks[layer] = []
-
-		marks = self.marks[layer]
-
-		for mark in marks:
-			if line.contains(mark):
-				markFound = True
-			else:
-				newMarks.append(mark)
-
-		if not markFound:
-			newMarks.append(line)
-
-		self.add_marks(newMarks, layer)
-
-	def has_layer(self, layer):
-		return layer in self.layers
-
-	def change_to_layer(self, layer, hot_create=False):
-		self.layer = layer
-		sublime.status_message(self.layer)
-
-		if self.layer in self.marks:
-			self.add_marks(self.marks[self.layer])
-			return True
-		else:
-			if hot_create:
-				self.marks[self.layer] = []
-				return True
-			else:
-				return False
-
-	def swap_layer(self, direction):
-		if direction == "prev":
-			self.layers.rotate(-1)
-		elif direction == "next":
-			self.layers.rotate(1)
-		else:
-			sublime.error_message("Invalid layer swap direction.")
-
-		self.change_to_layer(self.layers[0])
-
-class BetterBookmarksMarkLineCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
-		BetterBookmarksAPI.add_mark(self.view.line(self.view.sel()[0]))
-
-class BetterBookmarksClearMarksCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
-		BetterBookmarksAPI.add_marks([])
-
-class BetterBookmarksClearAllMarksCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
-		BetterBookmarksAPI.clear_marks()
-
-class BetterBookmarksSwapLayerCommand(sublime_plugin.TextCommand):
 	def run(self, edit, **args):
-		BetterBookmarksAPI.swap_layer(args.get("direction"))
+		view = self.view
+		subcommand = args['subcommand']
 
-class BetterBookmarksEventListener(sublime_plugin.EventListener):
-	def on_load(self, view):
-		if Settings().get("load_marks_on_load"):
-			filename = BBFunctions.get_current_file_name()
-			if not filename in bbFiles:
-				print("[BetterBookmarksEventListener] Creating BBFile for " + filename)
-				bb = BBFile(view)
-				bb.load_marks()
-				bbFiles[filename] = bb
+		if subcommand == 'mark_line':
+			selection = view.sel()
+			if Settings().get('mark_whole_line', False):
+				selection = view.lines(selection[0])
+			line = args['line'] if 'line' in args else selection
+			layer = args['layer'] if 'layer' in args else self.layer
 
-	def on_pre_save(self, view):
-		if Settings().get("auto_save_marks"):
-			filename = BBFunctions.get_current_file_name()
+			self._add_marks(line, layer)
+		elif subcommand == 'clear_marks':
+			layer = args['layer'] if 'layer' in args else self.layer
+			self._add_marks([], layer)
+		elif subcommand == 'clear_all':
+			for layer in self.layers:
+				self._add_marks([], layer)
+		elif subcommand == 'layer_swap':
+			direction = args.get('direction')
+			if direction == 'prev':
+				self.layers.rotate(-1)
+			elif direction == 'next':
+				self.layers.rotate(1)
+			else:
+				sublime.error_message('Invalid layer swap direction.')
 
-			bb = BBFunctions.get_bb_file()
-
-			if bb.marks.keys():
-				bb.save_marks()
-
-	def on_post_save(self, view):
-		if BBFunctions.get_variable("${file_name}") == "BetterBookmarks.sublime-settings":
-			for bb in bbFiles.items():
-				bb[1].layers.clear()
-				bb[1].layers.extend(Settings().get("layer_icons"))
-
-	def on_pre_close(self, view):
-		if Settings().get("cleanup_empty_cache_on_close"):
-			filename = BBFunctions.get_current_file_name()
-			bb = BBFunctions.get_bb_file()
-			empty = True
-			for item in bb.marks.items():
-				empty = empty and not item[1]
-			if bb.marks.items() and empty:
+			self._change_to_layer(self.layers[0])
+		elif subcommand == 'on_load':
+			self._load_marks()
+			self._change_to_layer(Settings().get('default_layer'))
+		elif subcommand == 'on_save':
+			self._save_marks()
+		elif subcommand == 'on_close':
+			if Settings().get('cache_marks_on_close', False):
+				self._save_marks()
+			if self._is_empty():
+				Log('Removing BBFile for ' + self.filename)
 				try:
-					os.remove(BBFunctions.get_marks_filename())
+					os.remove(self._get_cache_filename())
 				except FileNotFoundError as e:
 					pass
-			if filename in bbFiles:
-				del bbFiles[filename]
+
+class BetterBookmarksEventListener(sublime_plugin.EventListener):
+	def __init__(self):
+		sublime_plugin.EventListener.__init__(self)
+
+	def _contact(self, view, subcommand):
+		view.run_command('better_bookmarks', {'subcommand': subcommand})
+
+	def on_load_async(self, view):
+		if Settings().get('uncache_marks_on_load'):
+			self._contact(view, 'on_load')
+
+	def on_pre_save(self, view):
+		if Settings().get('cache_marks_on_save'):
+			self._contact(view, 'on_save')
+
+	def on_close(self, view):
+		if view.file_name() and Settings().get('cleanup_empty_cache_on_close'):
+			self._contact(view, 'on_close')

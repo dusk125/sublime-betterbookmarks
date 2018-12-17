@@ -1,0 +1,35 @@
+[
+   {
+      "caption": "BetterBookmarks: Previous Layer",
+      "command": "better_bookmarks",
+      "args": {"direction": "prev", "subcommand": "layer_swap"}
+   },
+   {
+      "caption": "BetterBookmarks: Next Layer",
+      "command": "better_bookmarks",
+      "args": {"direction": "next", "subcommand": "layer_swap"}
+   },
+   {   
+      "caption": "BetterBookmarks: Previous Bookmark",
+      "command": "prev_bookmark"
+   },
+   {
+      "caption": "BetterBookmarks: Next Bookmark",
+      "command": "next_bookmark"
+   },
+   {
+      "caption": "BetterBookmarks: Add Bookmark",
+      "command": "better_bookmarks",
+      "args": {"subcommand": "mark_line"}
+   },
+   {
+      "caption": "BetterBookmarks: Clear Layer",
+      "command": "better_bookmarks",
+      "args": {"subcommand": "clear_marks"}
+   },
+   {
+      "caption": "BetterBookmarks: Clear All Bookmarks",
+      "command": "better_bookmarks",
+      "args": {"subcommand": "clear_all"}
+   }
+]
