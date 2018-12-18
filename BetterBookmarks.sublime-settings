@@ -1,41 +1,43 @@
 {
-	// Should BetterBookmarks print out things to the console (usually unseen by the user) when it's doing caching operations.
-	"verbose": true,
-	// Should BetterBookmarks save marks on when the current file is saved.
-	"cache_marks_on_save": true,
-	// Should BetterBookmarks save marks on when the current file is closed.
-	"cache_marks_on_close": true,
-	// Should BetterBookmarks load saved marks automatically when a file is opened.
-	"uncache_marks_on_load": true,
-	// If the cache is empty, should BetterBookmarks delete the cached file (for the file being closed).
-	"cleanup_empty_cache_on_close": true,
-	// What layers should be available in editor. Icon is the path to the icon file. Scope controls the shading of the icon.
-	// NOTE: All of those listed in the example can be edited/removed.
-	"layer_icons": {
-		// This one is the default Sublime bookmark
-		"bookmarks": {"icon": "bookmark", "scope": "string"},
-		// "functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
-		// "todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
-	},
-	// What layer should be selected on start.
-	"default_layer": "bookmarks",
-	/*
-	 * Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
-	 *
-	 * Possible values:
-	 *    popup: Shows a popup with the name of the currently selected layer at the cursor location.
-	 *    temporary: Shows the layer name in the status bar for a brief amount of time.
-	 *    permanent: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
-	 */
-	"layer_status_location": ["permanent"],
-	// How should marking behave.
-	// 
-	// Possible values:
-	// 	selection: 	Adds one bookmark for an entire selection.
-	// 					Overlapping marks will combine to form a larger selection.
-	// 					"Point" marks will unmark the entire selection
-	// 	line: Toggles a mark on each line of the selection.
-	"marking_mode": "selection",
-	// If true, ignore the order of the selection; this causes the bookmark to always be min->max.
-	"ignore_cursor": false
+   // Should BetterBookmarks print out things to the console (usually unseen by the user) when it's doing caching operations.
+   "verbose": true,
+   // Should BetterBookmarks save marks on when the current file is saved.
+   "cache_marks_on_save": true,
+   // Should BetterBookmarks save marks on when the current file is closed.
+   "cache_marks_on_close": true,
+   // Should BetterBookmarks load saved marks automatically when a file is opened.
+   "uncache_marks_on_load": true,
+   // If the cache is empty, should BetterBookmarks delete the cached file (for the file being closed).
+   "cleanup_empty_cache_on_close": true,
+   // What layers should be available in editor. Icon is the path to the icon file. Scope controls the shading of the icon.
+   // NOTE: All of those listed in the example can be edited/removed.
+   "layer_icons": {
+      // This one is the default Sublime bookmark
+      "bookmarks": {"icon": "bookmark", "scope": "string"},
+      "functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
+      // "todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
+   },
+   // What layer should be selected on start.
+   "default_layer": "bookmarks",
+   /*
+    * Where, if anywhere, should BetterBookmarks show the user what layer they're on when they switch layers. This value can be any combination of the following possible values; you don't have to pick just one!
+    *
+    * Possible values:
+    *    popup: Shows a popup with the name of the currently selected layer at the cursor location.
+    *    temporary: Shows the layer name in the status bar for a brief amount of time.
+    *    permanent: Shows the layer name in the status bar permanently (unless "permanent" is removed from the settings).
+    */
+   "layer_status_location": ["permanent"],
+   /*
+    * How should marking behave.
+    *
+    * Possible values:
+    *    selection:  Adds one bookmark for an entire selection.
+    *                Overlapping marks will combine to form a larger selection.
+    *                "Point" marks will unmark the entire selection
+    *    line: Toggles a mark on each line of the selection.
+    */
+   "marking_mode": "selection",
+   // If true, ignore the order of the selection; this causes the bookmark to always be min->max.
+   "ignore_cursor": false
 }

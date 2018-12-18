@@ -24,20 +24,16 @@ def FixRegion(mark):
 		return [mark.begin(), mark.end()]
 	return [mark.a, mark.b]
 
-# Converts the marks-as-lists back into sublime.Regions
-def UnhashMarks(marks):
-	newMarks = []
-	for mark in marks:
-		newMarks.append(sublime.Region(mark[0], mark[1]))
-	return newMarks
+def fix(item):
+	if item[0] > item[1]:
+		item[0], item[1] = item[1], item[0]
+	return item
 
-# In order to use some list functions, python needs to be able to see
-# 	a sublime.Region as something simpler; in this case, a list.
-def HashMarks(marks):
-	newMarks = []
-	for mark in marks:
-		newMarks.append(FixRegion(mark))
-	return newMarks
+def mark_in(one, two):
+	one = one[0]
+	two = fix(two)
+
+	return one >= two[0] and one <= two[1]
 
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
@@ -47,13 +43,10 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		self.layer = Settings().get('default_layer')
 		while not self.layers[0] == self.layer:
 			self.layers.rotate(1)
-		self.marks = {}
-		for layer in Settings().get('layer_icons'):
-			self.marks[layer] = []
 
 	def _is_empty(self):
 		for layer in self.layers:
-			if self.marks[layer]:
+			if self.view.get_regions(self._get_region_name(layer)):
 				return False
 
 		return True
@@ -65,37 +58,30 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 		filename = str(h.hexdigest())
 		return '{:s}/User/BetterBookmarks/{:s}.bb_cache'.format(sublime.packages_path(), filename)
 
+	def _get_region_name(self, layer=None):
+		return 'better_bookmarks_{}'.format(layer if layer else self.layer)
+
 	# Renders the current layers marks to the view
 	def _render(self):
-		marks = UnhashMarks(self.marks[self.layer])
+		marks = self.view.get_regions(self._get_region_name())
 		icon = Settings().get('layer_icons')[self.layer]['icon']
 		scope = Settings().get('layer_icons')[self.layer]['scope']
 
-		self.view.add_regions('bookmarks', marks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
+		self.view.add_regions('better_bookmarks', marks, scope, icon, sublime.PERSISTENT | sublime.HIDDEN)
 
 	# Internal function for adding a list of marks to the existing ones.
 	# 	Any marks that exist in both lists will be removed as this case is when the user is 
 	# 		attempting to remove a mark.
 	def _add_marks(self, newMarks, layer=None):
-		layer = layer if layer else self.layer
-		marks = []
+		region = self._get_region_name(layer)
+		marks = self.view.get_regions(region)
 
-		if newMarks:
-			if not layer in self.marks:
-				self.marks[layer] = []
+		for mark in newMarks:
+			for m in marks:
+				
+		marks.extend(newMarks)
 
-			marks = self.marks[layer]
-			newMarks = HashMarks(newMarks)
-
-			for mark in newMarks:
-				isPoint = mark[0] - mark[1] == 0
-				print(mark, isPoint)
-				if mark in marks:
-					marks.remove(mark)
-				else:
-					marks.append(mark)
-
-		self.marks[layer] = marks
+		self.view.add_regions(self._get_region_name(layer), marks, '', '', 0)
 
 		if layer == self.layer:
 			self._render()
@@ -121,21 +107,6 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 		self._render()
 
-	def _save_marks(self):
-		if not self._is_empty():
-			Log('Saving BBFile for ' + self.filename)
-			with open(self._get_cache_filename(), 'w') as fp:
-				self.marks['filename'] = self.view.file_name()
-				json.dump(self.marks, fp)
-
-	def _load_marks(self):
-		Log('Loading BBFile for ' + self.filename)
-		try:
-			with open(self._get_cache_filename(), 'r') as fp:
-				self.marks = json.load(fp)
-		except Exception as e:
-			pass
-
 	def run(self, edit, **args):
 		view = self.view
 		subcommand = args['subcommand']
@@ -156,10 +127,12 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 			self._add_marks(line, layer)
 		elif subcommand == 'clear_marks':
 			layer = args['layer'] if 'layer' in args else self.layer
-			self._add_marks([], layer)
+			self.view.erase_regions('better_bookmarks')
+			self.view.erase_regions(self._get_region_name(layer))
 		elif subcommand == 'clear_all':
+			self.view.erase_regions('better_bookmarks')
 			for layer in self.layers:
-				self._add_marks([], layer)
+				self.view.erase_regions(self._get_region_name(layer))
 		elif subcommand == 'layer_swap':
 			direction = args.get('direction')
 			if direction == 'prev':
@@ -171,14 +144,28 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
 			self._change_to_layer(self.layers[0])
 		elif subcommand == 'on_load':
-			self._load_marks()
+			Log('Loading BBFile for ' + self.filename)
+			try:
+				with open(self._get_cache_filename(), 'r') as fp:
+					data = json.load(fp)
+
+					for name, marks in data['bookmarks'].items():
+						self._add_marks([sublime.Region(mark[0], mark[1]) for mark in marks], name)
+			except Exception as e:
+				pass
 			self._change_to_layer(Settings().get('default_layer'))
 		elif subcommand == 'on_save':
-			self._save_marks()
+			if not self._is_empty():
+				Log('Saving BBFile for ' + self.filename)
+				with open(self._get_cache_filename(), 'w') as fp:
+					marks = {'filename': self.view.file_name(), 'bookmarks': {}}
+					for layer in self.layers:
+						marks['bookmarks'][layer] = [FixRegion(mark) for mark in self.view.get_regions(self._get_region_name())]
+					json.dump(marks, fp)
 		elif subcommand == 'on_close':
 			if Settings().get('cache_marks_on_close', False):
 				self._save_marks()
-			if self._is_empty():
+			if Settings().get('cleanup_empty_cache_on_close', False) and self._is_empty():
 				Log('Removing BBFile for ' + self.filename)
 				try:
 					os.remove(self._get_cache_filename())
@@ -201,5 +188,5 @@ class BetterBookmarksEventListener(sublime_plugin.EventListener):
 			self._contact(view, 'on_save')
 
 	def on_close(self, view):
-		if view.file_name() and Settings().get('cleanup_empty_cache_on_close'):
+		if view.file_name():
 			self._contact(view, 'on_close')
