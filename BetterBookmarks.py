@@ -75,13 +75,14 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def _add_marks(self, newMarks, layer=None):
 		region = self._get_region_name(layer)
 		marks = self.view.get_regions(region)
-
+		
 		for mark in newMarks:
-			for m in marks:
-				
-		marks.extend(newMarks)
+			if mark in marks:
+				marks.remove(mark)
+			else:
+				marks.append(mark)
 
-		self.view.add_regions(self._get_region_name(layer), marks, '', '', 0)
+		self.view.add_regions(region, marks, '', '', 0)
 
 		if layer == self.layer:
 			self._render()
