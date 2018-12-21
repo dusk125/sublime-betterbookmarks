@@ -14,7 +14,7 @@
    "layer_icons": {
       // This one is the default Sublime bookmark
       "bookmarks": {"icon": "bookmark", "scope": "string"},
-      "functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
+      // "functions": {"icon": "Packages/Better Bookmarks/icons/function.png", "scope": "comment"},
       // "todos": {"icon": "Packages/Better Bookmarks/icons/todo.png", "scope": "comment"},
    },
    // What layer should be selected on start.
@@ -33,7 +33,7 @@
     *
     * Possible values:
     *    selection:  Adds one bookmark for an entire selection.
-    *                Overlapping marks will combine to form a larger selection.
+    *                Overlapping selections will combine to form a larger mark.
     *                "Point" marks will unmark the entire selection
     *    line: Toggles a mark on each line of the selection.
     */
