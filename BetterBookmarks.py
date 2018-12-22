@@ -102,6 +102,15 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
 
       self._render()
 
+   def _save_marks(self):
+      if not self._is_empty():
+         Log('Saving BBFile for ' + self.filename)
+         with open(self._get_cache_filename(), 'w') as fp:
+            marks = {'filename': self.view.file_name(), 'bookmarks': {}}
+            for layer in self.layers:
+               marks['bookmarks'][layer] = [FixRegion(mark) for mark in self.view.get_regions(self._get_region_name(layer))]
+            json.dump(marks, fp)
+
    def run(self, edit, **args):
       view = self.view
       subcommand = args['subcommand']
@@ -120,6 +129,8 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
          layer = args['layer'] if 'layer' in args else self.layer
 
          self._add_marks(line, layer)
+      elif subcommand == 'cycle_mark':
+         self.view.run_command('{}_bookmark'.format(args['direction']), {'name': 'better_bookmarks'})
       elif subcommand == 'clear_marks':
          layer = args['layer'] if 'layer' in args else self.layer
          self.view.erase_regions('better_bookmarks')
@@ -150,13 +161,7 @@ class BetterBookmarksCommand(sublime_plugin.TextCommand):
             pass
          self._change_to_layer(Settings().get('default_layer'))
       elif subcommand == 'on_save':
-         if not self._is_empty():
-            Log('Saving BBFile for ' + self.filename)
-            with open(self._get_cache_filename(), 'w') as fp:
-               marks = {'filename': self.view.file_name(), 'bookmarks': {}}
-               for layer in self.layers:
-                  marks['bookmarks'][layer] = [FixRegion(mark) for mark in self.view.get_regions(self._get_region_name())]
-               json.dump(marks, fp)
+         self._save_marks()
       elif subcommand == 'on_close':
          if Settings().get('cache_marks_on_close', False):
             self._save_marks()
