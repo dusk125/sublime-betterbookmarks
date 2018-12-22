@@ -11,13 +11,13 @@
    },
    {   
       "description": "Moves the viewport to the previous bookmark in the current visible layer.",
-      "keys": ["f9"], "command": "prev_bookmark",
-      "args": {"name": "better_bookmarks"}
+      "keys": ["f9"], "command": "better_bookmarks",
+      "args": {"subcommand": "cycle_mark", "direction": "prev"}
    },
    {
       "description": "Moves the viewport to the next bookmark in the current visible layer.",
-      "keys": ["f10"], "command": "next_bookmark",
-      "args": {"name": "better_bookmarks"}
+      "keys": ["f10"], "command": "better_bookmarks",
+      "args": {"subcommand": "cycle_mark", "direction": "next"}
    },
    {
       "description": "Adds a single bookmark to the current visible layer.",
