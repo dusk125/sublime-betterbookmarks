@@ -24,25 +24,19 @@ def FixRegion(mark):
 		return [mark.begin(), mark.end()]
 	return [mark.a, mark.b]
 
-def fix(item):
-	if item[0] > item[1]:
-		item[0], item[1] = item[1], item[0]
-	return item
-
-def mark_in(one, two):
-	one = one[0]
-	two = fix(two)
-
-	return one >= two[0] and one <= two[1]
-
 class BetterBookmarksCommand(sublime_plugin.TextCommand):
 	def __init__(self, edit):
 		sublime_plugin.TextCommand.__init__(self, edit)
 		self.filename = Variable('${file_name}')
-		self.layers = collections.deque(Settings().get('layer_icons'))
+		self.layers = None
+		self.on_layer_setting_change()
 		self.layer = Settings().get('default_layer')
 		while not self.layers[0] == self.layer:
 			self.layers.rotate(1)
+		Settings().add_on_change('layer_icons', self.on_layer_setting_change)
+
+	def on_layer_setting_change(self):
+		self.layers = collections.deque(Settings().get('layer_icons'))
 
 	def _is_empty(self):
 		for layer in self.layers:
