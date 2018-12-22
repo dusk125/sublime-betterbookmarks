@@ -22,41 +22,41 @@ The following are the bindings from the default keymap.
 Swap layers backwards
 
 [
-	{
-		"description": "Swaps the layers backwards.",
-		"keys": ["f7"], "command": "better_bookmarks",
-		"args": {"direction": "prev", "subcommand": "layer_swap"}
-	},
-	{
-		"description": "Swaps the layers forwards.",
-		"keys": ["f8"], "command": "better_bookmarks",
-		"args": {"direction": "next", "subcommand": "layer_swap"}
-	},
-	{   
-		"description": "Moves the viewport to the previous bookmark in the current visible layer.",
-		"keys": ["f9"], "command": "prev_bookmark",
-		"args": {"name": "better_bookmarks"}
-	},
-	{
-		"description": "Moves the viewport to the next bookmark in the current visible layer.",
-		"keys": ["f10"], "command": "next_bookmark",
-		"args": {"name": "better_bookmarks"}
-	},
-	{
-		"description": "Adds a single bookmark to the current visible layer.",
-		"keys": ["f11"], "command": "better_bookmarks",
-		"args": {"subcommand": "mark_line"}
-	},
-	{
-		"description": "Removes all marks in the current visible layer.",
-		"keys": ["f12"], "command": "better_bookmarks",
-		"args": {"subcommand": "clear_marks"}
-	},
-	{
-		"description": "Removes all marks from ALL layers.",
-		"keys": ["shift+f12"], "command": "better_bookmarks",
-		"args": {"subcommand": "clear_all"}
-	}
+   {
+      "description": "Swaps the layers backwards.",
+      "keys": ["f7"], "command": "better_bookmarks",
+      "args": {"direction": "prev", "subcommand": "layer_swap"}
+   },
+   {
+      "description": "Swaps the layers forwards.",
+      "keys": ["f8"], "command": "better_bookmarks",
+      "args": {"direction": "next", "subcommand": "layer_swap"}
+   },
+   {   
+      "description": "Moves the viewport to the previous bookmark in the current visible layer.",
+      "keys": ["f9"], "command": "prev_bookmark",
+      "args": {"name": "better_bookmarks"}
+   },
+   {
+      "description": "Moves the viewport to the next bookmark in the current visible layer.",
+      "keys": ["f10"], "command": "next_bookmark",
+      "args": {"name": "better_bookmarks"}
+   },
+   {
+      "description": "Adds a single bookmark to the current visible layer.",
+      "keys": ["f11"], "command": "better_bookmarks",
+      "args": {"subcommand": "mark_line"}
+   },
+   {
+      "description": "Removes all marks in the current visible layer.",
+      "keys": ["f12"], "command": "better_bookmarks",
+      "args": {"subcommand": "clear_marks"}
+   },
+   {
+      "description": "Removes all marks from ALL layers.",
+      "keys": ["shift+f12"], "command": "better_bookmarks",
+      "args": {"subcommand": "clear_all"}
+   }
 ]
 ```
 ## Settings

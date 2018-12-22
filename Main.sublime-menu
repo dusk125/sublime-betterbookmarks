@@ -1,38 +1,38 @@
 [
-	{
-		"id": "preferences",
-		"children":
-		[
-			{
-				"caption": "Package Settings",
-				"id": "package-settings",
-				"children":
-				[
-					{
-						"caption": "BetterBookmarks",
-						"children":
-						[
-							{
-								"caption": "Settings",
-								"command": "edit_settings",
-								"args": {
-									"base_file": "${packages}/Better Bookmarks/BetterBookmarks.sublime-settings",
-									"default": "{\n$0\n}\n"
-								}
-							},
-							{"caption": "-"},
-							{
-								"caption": "Key Bindings",
-								"command": "edit_settings",
-								"args": {
-									"base_file": "${packages}/Better Bookmarks/Default.sublime-keymap",
-									"default": "{\n$0\n}\n"
-								}
-							}
-						]
-					}
-				]
-			}
-		]
-	}
+   {
+      "id": "preferences",
+      "children":
+      [
+         {
+            "caption": "Package Settings",
+            "id": "package-settings",
+            "children":
+            [
+               {
+                  "caption": "BetterBookmarks",
+                  "children":
+                  [
+                     {
+                        "caption": "Settings",
+                        "command": "edit_settings",
+                        "args": {
+                           "base_file": "${packages}/Better Bookmarks/BetterBookmarks.sublime-settings",
+                           "default": "{\n$0\n}\n"
+                        }
+                     },
+                     {"caption": "-"},
+                     {
+                        "caption": "Key Bindings",
+                        "command": "edit_settings",
+                        "args": {
+                           "base_file": "${packages}/Better Bookmarks/Default.sublime-keymap",
+                           "default": "{\n$0\n}\n"
+                        }
+                     }
+                  ]
+               }
+            ]
+         }
+      ]
+   }
 ]
